@@ -21,3 +21,13 @@ Feature: Criação de booking
   Scenario: Tentar criar booking sem um campo obrigatório
     When ele tenta criar um booking sem informar o firstname
     Then a resposta deve indicar um erro interno do servidor
+
+  # A API aceita um totalprice em formato errado (texto em vez de número) e
+  # devolve 200, gravando null no lugar em silêncio, em vez de rejeitar o
+  # payload. Esse cenário prova que a validação de schema do projeto pega
+  # essa corrupção: a resposta não bate com o modelo Booking, e o teste
+  # acusa o problema em vez de aceitar o dado corrompido como válido.
+  @TC-016
+  Scenario: Criar booking com totalprice em formato inválido
+    When ele cria um booking com totalprice em formato inválido
+    Then a resposta da API não deve corresponder ao schema esperado
