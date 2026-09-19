@@ -48,6 +48,3 @@ class BookingApiClient:
 
     def delete_booking(self, booking_id: int, token: str) -> requests.Response:
         return self.session.delete(f"{self.base_url}/booking/{booking_id}", cookies={"token": token})
-
-    def exemplo_com_bug(self, booking_id: int) -> None:
-        self.get_booking(booking_id)

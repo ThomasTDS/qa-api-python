@@ -2,9 +2,9 @@ name: API Tests
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
   schedule:
     - cron: '0 6 * * *'
 
@@ -36,6 +36,14 @@ jobs:
 
       - name: Rodar testes
         run: pytest
+
+      - name: Enviar cobertura para o Codecov
+        if: always()
+        uses: codecov/codecov-action@v7
+        with:
+          files: reports/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
       - name: Publicar relatório HTML
         if: always()
