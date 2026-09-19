@@ -48,6 +48,7 @@ markers = [
     "TC-011: id do test case, ver docs/test-cases.md",
     "TC-012: id do test case, ver docs/test-cases.md",
     "TC-013: id do test case, ver docs/test-cases.md",
+    "TC-014: id do test case, ver docs/test-cases.md",
 ]
 
 [tool.ruff]
