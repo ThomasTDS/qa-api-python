@@ -1,3 +1,5 @@
+import pytest
+from pydantic import ValidationError
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from conftest import Context
@@ -97,6 +99,29 @@ def tenta_criar_booking_sem_firstname(context: Context) -> None:
 def resposta_indica_erro_interno_do_servidor(context: Context) -> None:
     assert context.last_response is not None
     assert context.last_response.status_code == 500
+
+
+@when("ele cria um booking com totalprice em formato inválido")
+def cria_booking_com_totalprice_invalido(context: Context) -> None:
+    payload = {
+        "firstname": "Fulano",
+        "lastname": "Ciclano",
+        "totalprice": "nao-e-numero",
+        "depositpaid": True,
+        "bookingdates": {"checkin": "2026-01-01", "checkout": "2026-01-05"},
+    }
+    context.last_response = context.booking_client.create_booking_raw(payload)
+    # A resposta não bate com o schema, mas o id criado é válido e precisa
+    # ser limpo no final do teste como qualquer outro booking.
+    context.booking_id = context.last_response.json().get("bookingid")
+
+
+@then("a resposta da API não deve corresponder ao schema esperado")
+def resposta_nao_corresponde_ao_schema(context: Context) -> None:
+    assert context.last_response is not None
+    assert context.last_response.status_code == 200
+    with pytest.raises(ValidationError):
+        CreateBookingResponse.model_validate(context.last_response.json())
 
 
 # CONSULTA
