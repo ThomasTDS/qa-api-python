@@ -15,6 +15,7 @@ dev = [
     "pytest-rerunfailures>=15.0",
     "pytest-html>=4.1",
     "pytest-cov>=6.0",
+    "requests-mock>=1.12",
     "ruff>=0.14",
     "mypy>=1.14",
     "types-requests>=2.32",
@@ -29,7 +30,7 @@ build-backend = "setuptools.build_meta"
 include = ["api*", "models*"]
 
 [tool.pytest.ini_options]
-testpaths = ["steps"]
+testpaths = ["steps", "tests"]
 addopts = "--reruns 1 --html=reports/report.html --self-contained-html --cov=api --cov=models --cov-report=term-missing --cov-report=xml:reports/coverage.xml"
 markers = [
     "smoke: fluxos ponta-a-ponta mais críticos (equivalente a npm run test:smoke)",
