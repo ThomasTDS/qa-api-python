@@ -32,6 +32,11 @@ class BookingApiClient:
     def create_booking(self, booking: Booking) -> requests.Response:
         return self.session.post(f"{self.base_url}/booking", json=booking.model_dump(exclude_none=True))
 
+    # Recebe um dict cru (sem passar pela validação do Pydantic) para testes
+    # negativos que precisam mandar um payload propositalmente inválido.
+    def create_booking_raw(self, payload: dict[str, Any]) -> requests.Response:
+        return self.session.post(f"{self.base_url}/booking", json=payload)
+
     def update_booking(self, booking_id: int, booking: Booking, token: str) -> requests.Response:
         return self.session.put(
             f"{self.base_url}/booking/{booking_id}",
