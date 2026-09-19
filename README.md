@@ -23,7 +23,9 @@ qa-api-python/
 ├── docs/
 │   └── test-cases.md       # Matriz de rastreabilidade dos test cases
 ├── features/                # Cenários em Gherkin (.feature)
-├── steps/                   # Implementação dos steps do pytest-bdd
+├── steps/                   # Implementação dos steps do pytest-bdd (testes de integração, batem na API real)
+├── tests/
+│   └── unit/                # Testes unitários isolados de api/ e models/ (com requests-mock, sem rede)
 ├── api/                     # API Clients (AuthApiClient, BookingApiClient)
 ├── models/                  # Schemas Pydantic e tipos derivados (shape dos dados da API)
 ├── reports/                 # Relatório HTML e cobertura (coverage.xml) gerados a cada execução (não versionado)
@@ -66,6 +68,14 @@ pytest -m smoke
 ```
 
 Roda só os fluxos ponta-a-ponta mais críticos (autenticação, criação, consulta, atualização e remoção — ver [docs/test-cases.md](docs/test-cases.md)). Como o `pyproject.toml` sempre escreve no mesmo arquivo, rodar isso depois de `pytest` **sobrescreve** `reports/report.html` com só esses 5 cenários.
+
+### Rodar só os testes unitários
+
+```
+pytest tests/unit
+```
+
+Testes isolados de `api/` e `models/`, com as chamadas HTTP mocadas via [`requests-mock`](https://requests-mock.readthedocs.io/) — não fazem nenhuma chamada de rede, então rodam em milissegundos e não dependem da API pública estar no ar. Complementam os cenários de `steps/`, que são testes de integração de verdade contra a `restful-booker`.
 
 ### Lint e formatação
 
@@ -119,6 +129,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 
 - BDD / Gherkin: cenários claros e legíveis em `.feature`, executados via `pytest-bdd`.
 - API Client Objects: `AuthApiClient` e `BookingApiClient` encapsulam as chamadas HTTP, do mesmo jeito que Page Objects encapsulam elementos de UI.
+- Pirâmide de testes: além dos cenários de BDD (`steps/`), que são testes de integração reais contra a `restful-booker`, `tests/unit/` cobre `api/` e `models/` de forma isolada, com `requests-mock` simulando as respostas HTTP — sem rede, sem depender da API pública estar no ar.
 - Validação de schema com [Pydantic](https://docs.pydantic.dev/): as respostas da API são validadas em tempo de execução contra os modelos em `models/booking.py` (fonte única de verdade), não só tipadas por anotação — se a API mudar o formato de uma resposta, o teste falha com uma mensagem clara em vez de passar silenciosamente ou quebrar mais adiante.
 - Cobertura de autenticação, CRUD completo, PUT vs. PATCH, e casos de acesso não autorizado (403).
 - Relatório HTML automatizado a cada execução (`reports/report.html`, via `pytest-html`), com a versão da `master` publicada em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/) via GitHub Pages.
