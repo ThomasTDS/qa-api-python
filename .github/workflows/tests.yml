@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 6 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -52,3 +55,30 @@ jobs:
           name: pytest-report
           path: reports/report.html
           retention-days: 15
+
+      - name: Preparar página do GitHub Pages
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: |
+          mkdir -p pages
+          cp reports/report.html pages/index.html
+
+      - name: Empacotar artifact do GitHub Pages
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: pages
+
+  deploy-pages:
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
