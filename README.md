@@ -1,7 +1,7 @@
 # 🔌 QA API + pytest-bdd - restful-booker
 
 [![API Tests](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml/badge.svg)](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml)
-[![codecov](https://codecov.io/gh/ThomasTDS/qa-api-python/branch/main/graph/badge.svg)](https://codecov.io/gh/ThomasTDS/qa-api-python)
+[![codecov](https://codecov.io/gh/ThomasTDS/qa-api-python/branch/master/graph/badge.svg)](https://codecov.io/gh/ThomasTDS/qa-api-python)
 
 ## Descrição
 
@@ -122,7 +122,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Cobertura de código (`pytest-cov`) de `api/` e `models/` em cada execução, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - Limpeza automática: a fixture `context` remove o booking criado no cenário (via token próprio de limpeza) ao final de cada teste, evitando acúmulo de dados na API pública.
 - Retry automático (`pytest-rerunfailures`, `--reruns 1`): um cenário que falha roda uma segunda vez antes de ser reportado como falha, amortecendo instabilidade transitória da API pública de demonstração.
-- Integração contínua via GitHub Actions: os testes rodam automaticamente a cada push e pull request para `main`, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.
+- Integração contínua via GitHub Actions: os testes rodam automaticamente a cada push e pull request para `master`, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.
 - Dependências atualizadas automaticamente pelo Dependabot (pip e GitHub Actions, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). PRs de patch/minor com CI verde são mergeados automaticamente ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
 - Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Scenario` e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
 
@@ -130,7 +130,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 
 ### Fluxo de Trabalho
 
-A branch `main` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que o check de CI (`test`) passa. Fluxo padrão:
+A branch `master` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que o check de CI (`test`) passa. Fluxo padrão:
 
 ```
 git checkout -b minha-branch
