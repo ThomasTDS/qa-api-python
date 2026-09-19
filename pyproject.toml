@@ -14,6 +14,7 @@ dev = [
     "pytest-bdd>=8.1",
     "pytest-rerunfailures>=15.0",
     "pytest-html>=4.1",
+    "pytest-cov>=6.0",
     "ruff>=0.14",
     "mypy>=1.14",
     "types-requests>=2.32",
@@ -29,7 +30,7 @@ include = ["api*", "models*"]
 
 [tool.pytest.ini_options]
 testpaths = ["steps"]
-addopts = "--reruns 1 --html=reports/report.html --self-contained-html"
+addopts = "--reruns 1 --html=reports/report.html --self-contained-html --cov=api --cov=models --cov-report=term-missing --cov-report=xml:reports/coverage.xml"
 markers = [
     "smoke: fluxos ponta-a-ponta mais críticos (equivalente a npm run test:smoke)",
     "TC-001: id do test case, ver docs/test-cases.md",
@@ -59,3 +60,9 @@ python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 exclude = ["reports"]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]

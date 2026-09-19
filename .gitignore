@@ -13,6 +13,9 @@ venv/
 # Test reports
 reports/
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
 
 # Type checking
 .mypy_cache/
@@ -25,3 +28,6 @@ reports/
 
 # VS Code
 .vscode/
+
+# Log de decisões do projeto (uso pessoal, não é material público)
+Decisões projeto.md

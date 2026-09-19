@@ -1,6 +1,7 @@
 # 🔌 QA API + pytest-bdd - restful-booker
 
 [![API Tests](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml/badge.svg)](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/ThomasTDS/qa-api-python/branch/main/graph/badge.svg)](https://codecov.io/gh/ThomasTDS/qa-api-python)
 
 ## Descrição
 
@@ -25,7 +26,7 @@ qa-api-python/
 ├── steps/                   # Implementação dos steps do pytest-bdd
 ├── api/                     # API Clients (AuthApiClient, BookingApiClient)
 ├── models/                  # Schemas Pydantic e tipos derivados (shape dos dados da API)
-├── reports/                 # Relatório HTML gerado a cada execução (não versionado)
+├── reports/                 # Relatório HTML e cobertura (coverage.xml) gerados a cada execução (não versionado)
 ├── conftest.py              # Fixtures (contexto por cenário) e captura de evidência de falha
 ├── pyproject.toml           # Dependências, scripts e configuração (pytest, ruff, mypy)
 ├── .pre-commit-config.yaml  # Hook de pre-commit (ruff)
@@ -75,6 +76,8 @@ ruff format .             # formatação, aplica as correções
 
 O CI roda `mypy`, `ruff check` e `ruff format --check` antes dos testes, então mudanças com problema de tipo ou estilo falham rápido, sem gastar tempo batendo na API pública.
 
+Cada execução de `pytest` já gera cobertura de `api/` e `models/` (código dos API Clients e dos schemas), impressa no terminal e também em `reports/coverage.xml` (não versionado). No CI esse arquivo é enviado para o [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python), que mantém o histórico e mostra o badge no topo deste README.
+
 Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `pip install`) roda `ruff --fix` e `ruff format` nos arquivos staged antes de cada commit, então a maioria dos problemas de lint/formatação já é corrigida localmente antes de chegar no CI.
 
 ### Rodar contra outra URL
@@ -116,6 +119,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Validação de schema com [Pydantic](https://docs.pydantic.dev/): as respostas da API são validadas em tempo de execução contra os modelos em `models/booking.py` (fonte única de verdade), não só tipadas por anotação — se a API mudar o formato de uma resposta, o teste falha com uma mensagem clara em vez de passar silenciosamente ou quebrar mais adiante.
 - Cobertura de autenticação, CRUD completo, PUT vs. PATCH, e casos de acesso não autorizado (403).
 - Relatório HTML automatizado a cada execução (`reports/report.html`, via `pytest-html`).
+- Cobertura de código (`pytest-cov`) de `api/` e `models/` em cada execução, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - Limpeza automática: a fixture `context` remove o booking criado no cenário (via token próprio de limpeza) ao final de cada teste, evitando acúmulo de dados na API pública.
 - Retry automático (`pytest-rerunfailures`, `--reruns 1`): um cenário que falha roda uma segunda vez antes de ser reportado como falha, amortecendo instabilidade transitória da API pública de demonstração.
 - Integração contínua via GitHub Actions: os testes rodam automaticamente a cada push e pull request para `main`, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.

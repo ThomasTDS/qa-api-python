@@ -37,6 +37,14 @@ jobs:
       - name: Rodar testes
         run: pytest
 
+      - name: Enviar cobertura para o Codecov
+        if: always()
+        uses: codecov/codecov-action@v7
+        with:
+          files: reports/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
       - name: Publicar relatório HTML
         if: always()
         uses: actions/upload-artifact@v7
