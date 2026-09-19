@@ -1,0 +1,5 @@
+# Normaliza todo arquivo de texto para LF, independente do OS do
+# contribuidor. Evita que o checkout no Windows (que costuma converter
+# para CRLF) gere falsos positivos no `ruff format --check` que não
+# acontecem no CI (Ubuntu).
+* text=auto eol=lf

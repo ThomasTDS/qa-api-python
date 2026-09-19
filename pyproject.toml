@@ -1,0 +1,61 @@
+[project]
+name = "qa-api-restful-booker-python"
+version = "1.0.0"
+description = "Testes de API (BDD + API Clients) contra a restful-booker demo API"
+requires-python = ">=3.12"
+authors = [{ name = "ThomasTDS" }]
+license = "ISC"
+
+dependencies = ["requests>=2.32", "pydantic>=2.9"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-bdd>=8.1",
+    "pytest-rerunfailures>=15.0",
+    "pytest-html>=4.1",
+    "ruff>=0.14",
+    "mypy>=1.14",
+    "types-requests>=2.32",
+    "pre-commit>=4.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["api*", "models*"]
+
+[tool.pytest.ini_options]
+testpaths = ["steps"]
+addopts = "--reruns 1 --html=reports/report.html --self-contained-html"
+markers = [
+    "smoke: fluxos ponta-a-ponta mais críticos (equivalente a npm run test:smoke)",
+    "TC-001: id do test case, ver docs/test-cases.md",
+    "TC-002: id do test case, ver docs/test-cases.md",
+    "TC-003: id do test case, ver docs/test-cases.md",
+    "TC-004: id do test case, ver docs/test-cases.md",
+    "TC-005: id do test case, ver docs/test-cases.md",
+    "TC-006: id do test case, ver docs/test-cases.md",
+    "TC-007: id do test case, ver docs/test-cases.md",
+    "TC-008: id do test case, ver docs/test-cases.md",
+    "TC-009: id do test case, ver docs/test-cases.md",
+    "TC-010: id do test case, ver docs/test-cases.md",
+    "TC-011: id do test case, ver docs/test-cases.md",
+    "TC-012: id do test case, ver docs/test-cases.md",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["reports"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+exclude = ["reports"]
