@@ -15,6 +15,7 @@ dev = [
     "pytest-rerunfailures>=15.0",
     "pytest-html>=4.1",
     "pytest-cov>=6.0",
+    "pip-audit>=2.7",
     "ruff>=0.14",
     "mypy>=1.14",
     "types-requests>=2.32",
