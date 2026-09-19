@@ -28,6 +28,11 @@ def com_token_de_autenticacao_valido(context: Context) -> None:
     context.token = context.auth_client.get_valid_token()
 
 
+@given("que ele possui um token de autenticação inválido")
+def com_token_de_autenticacao_invalido(context: Context) -> None:
+    context.token = "token-invalido-qualquer"
+
+
 @when(parsers.parse('ele solicita um token com o usuário "{username}" e a senha "{password}"'))
 def solicita_um_token(context: Context, username: str, password: str) -> None:
     context.last_response = context.auth_client.create_token(username, password)

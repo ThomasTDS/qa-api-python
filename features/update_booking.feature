@@ -15,6 +15,16 @@ Feature: Atualização de booking (PUT e PATCH)
     When ele tenta atualizar o booking com novos dados
     Then a resposta deve indicar acesso não autorizado
 
+  # Diferente do TC-008 (token ausente): aqui o token existe, mas é inválido.
+  # Validado manualmente que PATCH e DELETE se comportam da mesma forma (403),
+  # então não repetimos esse caso pros outros dois verbos.
+  @TC-013
+  Scenario: Tentar atualizar booking com token inválido
+    Given que existe um booking criado
+    And que ele possui um token de autenticação inválido
+    When ele tenta atualizar o booking com novos dados
+    Then a resposta deve indicar acesso não autorizado
+
   # PATCH atualiza somente os campos enviados, mantendo o restante do booking.
   @TC-009
   Scenario: Atualizar parcialmente o booking com PATCH

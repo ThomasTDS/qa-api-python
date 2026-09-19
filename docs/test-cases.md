@@ -20,10 +20,11 @@ Legenda:
 | TC-006 | Consulta     | Buscar bookings filtrando por firstname e lastname      | Funcional | Média      | Automatizado | [get_booking.feature:15](../features/get_booking.feature#L15)          |
 | TC-007 | Atualização  | Atualizar booking com token válido (PUT)                | Funcional | Crítica    | Automatizado | [update_booking.feature:4](../features/update_booking.feature#L4)      |
 | TC-008 | Atualização  | Tentar atualizar booking sem token de autenticação      | Negativo  | Alta       | Automatizado | [update_booking.feature:10](../features/update_booking.feature#L10)    |
-| TC-009 | Atualização  | Atualizar parcialmente o booking com PATCH              | Funcional | Média      | Automatizado | [update_booking.feature:17](../features/update_booking.feature#L17)    |
+| TC-009 | Atualização  | Atualizar parcialmente o booking com PATCH              | Funcional | Média      | Automatizado | [update_booking.feature:27](../features/update_booking.feature#L27)    |
 | TC-010 | Remoção      | Remover booking com token válido                        | Funcional | Crítica    | Automatizado | [delete_booking.feature:3](../features/delete_booking.feature#L3)      |
 | TC-011 | Remoção      | Tentar remover booking sem token de autenticação        | Negativo  | Alta       | Automatizado | [delete_booking.feature:9](../features/delete_booking.feature#L9)      |
-| TC-012 | Atualização  | Tentar atualizar parcialmente booking sem token (PATCH) | Negativo  | Alta       | Automatizado | [update_booking.feature:27](../features/update_booking.feature#L27)    |
+| TC-012 | Atualização  | Tentar atualizar parcialmente booking sem token (PATCH) | Negativo  | Alta       | Automatizado | [update_booking.feature:36](../features/update_booking.feature#L36)    |
+| TC-013 | Atualização  | Tentar atualizar booking com token inválido (PUT)       | Negativo  | Alta       | Automatizado | [update_booking.feature:17](../features/update_booking.feature#L17)    |
 
 `BookingApiClient.get_booking_ids` também aceita filtro por `checkin`/`checkout`, mas o TC-006 cobre só `firstname`/`lastname`: o filtro por data na API pública de demonstração é conhecido por ser instável, e testá-lo arriscaria um teste flaky em vez de validar um comportamento real.
 
