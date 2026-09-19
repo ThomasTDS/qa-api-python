@@ -1,5 +1,5 @@
 [project]
-name = "qa-api-restful-booker-python"
+name = "qa-api-python"
 version = "1.0.0"
 description = "Testes de API (BDD + API Clients) contra a restful-booker demo API"
 requires-python = ">=3.12"

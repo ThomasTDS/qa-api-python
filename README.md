@@ -1,6 +1,6 @@
 # 🔌 QA API + pytest-bdd - restful-booker
 
-[![API Tests](https://github.com/ThomasTDS/restful-booker-python/actions/workflows/tests.yml/badge.svg)](https://github.com/ThomasTDS/restful-booker-python/actions/workflows/tests.yml)
+[![API Tests](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml/badge.svg)](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml)
 
 ## Descrição
 
@@ -13,7 +13,7 @@ O objetivo é praticar testes de API "de verdade": autenticação, CRUD completo
 ## Estrutura do Projeto
 
 ```text
-qa-api-restful-booker-python/
+qa-api-python/
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   └── bug_report.md   # Template de Issue para bugs reais
