@@ -10,3 +10,14 @@ Feature: Criação de booking
     When ele cria um booking com dados válidos
     Then o booking deve ser criado com sucesso
     And o id do booking criado deve ser retornado
+
+  # Bug real da API, documentado em
+  # https://github.com/ThomasTDS/qa-api-python/issues/8: em vez de rejeitar
+  # com 400, a API derruba com 500 quando falta um campo obrigatório. Esse
+  # cenário trava o comportamento atual; se um dia passar a devolver 400,
+  # é sinal de que o bug foi corrigido do lado de lá, e cabe atualizar o
+  # teste (e fechar a issue).
+  @TC-015
+  Scenario: Tentar criar booking sem um campo obrigatório
+    When ele tenta criar um booking sem informar o firstname
+    Then a resposta deve indicar um erro interno do servidor

@@ -82,6 +82,23 @@ def id_do_booking_criado_deve_ser_retornado(context: Context) -> None:
     context.booking_id = body.bookingid
 
 
+@when("ele tenta criar um booking sem informar o firstname")
+def tenta_criar_booking_sem_firstname(context: Context) -> None:
+    payload = {
+        "lastname": "Ciclano",
+        "totalprice": 150,
+        "depositpaid": True,
+        "bookingdates": {"checkin": "2026-01-01", "checkout": "2026-01-05"},
+    }
+    context.last_response = context.booking_client.create_booking_raw(payload)
+
+
+@then("a resposta deve indicar um erro interno do servidor")
+def resposta_indica_erro_interno_do_servidor(context: Context) -> None:
+    assert context.last_response is not None
+    assert context.last_response.status_code == 500
+
+
 # CONSULTA
 @when("ele busca o booking pelo id")
 def busca_o_booking_pelo_id(context: Context) -> None:
