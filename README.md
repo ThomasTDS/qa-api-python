@@ -2,6 +2,8 @@
 
 [![API Tests](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml/badge.svg)](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/ThomasTDS/qa-api-python/branch/master/graph/badge.svg)](https://codecov.io/gh/ThomasTDS/qa-api-python)
+[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue)](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml)
+[![License](https://img.shields.io/github/license/ThomasTDS/qa-api-python)](LICENSE)
 
 ## Descrição
 
