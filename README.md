@@ -150,7 +150,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 
 ### Fluxo de Trabalho
 
-A branch `master` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que os checks de CI (`test (3.12)` e `test (3.13)`) passarem. Fluxo padrão:
+A branch `master` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que os checks de CI (`test (3.12)` e `test (3.13)`) e de cobertura do Codecov passarem. Fluxo padrão:
 
 ```
 git checkout -b minha-branch
