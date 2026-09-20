@@ -14,6 +14,10 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12', '3.13']
 
     steps:
       - name: Checkout código
@@ -22,7 +26,7 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
       - name: Instalar dependências
@@ -45,8 +49,10 @@ jobs:
       - name: Rodar testes
         run: pytest
 
+      # Cobertura, relatório HTML e Pages só precisam de uma versão do Python
+      # gerando o artifact — rodar pras duas duplicaria o upload à toa.
       - name: Enviar cobertura para o Codecov
-        if: always()
+        if: always() && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v7
         with:
           files: reports/coverage.xml
@@ -54,7 +60,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Publicar relatório HTML
-        if: always()
+        if: always() && matrix.python-version == '3.12'
         uses: actions/upload-artifact@v7
         with:
           name: pytest-report
@@ -62,13 +68,13 @@ jobs:
           retention-days: 15
 
       - name: Preparar página do GitHub Pages
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        if: matrix.python-version == '3.12' && github.ref == 'refs/heads/master' && github.event_name == 'push'
         run: |
           mkdir -p pages
           cp reports/report.html pages/index.html
 
       - name: Empacotar artifact do GitHub Pages
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        if: matrix.python-version == '3.12' && github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v5
         with:
           path: pages
