@@ -32,6 +32,7 @@ qa-api-python/
 ├── conftest.py              # Fixtures (contexto por cenário) e captura de evidência de falha
 ├── pyproject.toml           # Dependências, scripts e configuração (pytest, ruff, mypy)
 ├── .pre-commit-config.yaml  # Hooks de pre-commit (ruff, mypy)
+├── codecov.yml              # Metas de cobertura que bloqueiam o merge no Codecov
 ├── LICENSE
 └── README.md                # Este arquivo
 ```
@@ -90,6 +91,8 @@ pip-audit                 # checa dependências instaladas contra vulnerabilidad
 O CI roda `mypy`, `ruff check`, `ruff format --check` e `pip-audit` antes dos testes, então mudanças com problema de tipo, estilo ou uma dependência vulnerável falham rápido, sem gastar tempo batendo na API pública. Uma vulnerabilidade encontrada pelo `pip-audit` quebra o CI — não tem como mergear sem resolver ou avaliar o caso pontualmente.
 
 Cada execução de `pytest` já gera cobertura de `api/` e `models/` (código dos API Clients e dos schemas), impressa no terminal e também em `reports/coverage.xml` (não versionado). No CI esse arquivo é enviado para o [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python), que mantém o histórico e mostra o badge no topo deste README.
+
+O Codecov também bloqueia o merge do PR (configuração em `codecov.yml`) se: o código novo/alterado no PR (`patch`) não vier 100% coberto, ou se a cobertura total do projeto (`project`) cair mais de 1 ponto percentual — uma margem pequena, só pra não travar por causa de arredondamento.
 
 Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `pip install`) roda `ruff --fix` e `ruff format` nos arquivos staged, e também `mypy .` no projeto inteiro, antes de cada commit — então a maioria dos problemas de lint, formatação ou tipo já é pega localmente antes de chegar no CI.
 
