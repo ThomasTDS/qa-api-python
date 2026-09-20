@@ -31,7 +31,7 @@ qa-api-python/
 ├── reports/                 # Relatório HTML e cobertura (coverage.xml) gerados a cada execução (não versionado)
 ├── conftest.py              # Fixtures (contexto por cenário) e captura de evidência de falha
 ├── pyproject.toml           # Dependências, scripts e configuração (pytest, ruff, mypy)
-├── .pre-commit-config.yaml  # Hook de pre-commit (ruff)
+├── .pre-commit-config.yaml  # Hooks de pre-commit (ruff, mypy)
 ├── LICENSE
 └── README.md                # Este arquivo
 ```
@@ -91,7 +91,7 @@ O CI roda `mypy`, `ruff check`, `ruff format --check` e `pip-audit` antes dos te
 
 Cada execução de `pytest` já gera cobertura de `api/` e `models/` (código dos API Clients e dos schemas), impressa no terminal e também em `reports/coverage.xml` (não versionado). No CI esse arquivo é enviado para o [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python), que mantém o histórico e mostra o badge no topo deste README.
 
-Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `pip install`) roda `ruff --fix` e `ruff format` nos arquivos staged antes de cada commit, então a maioria dos problemas de lint/formatação já é corrigida localmente antes de chegar no CI.
+Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `pip install`) roda `ruff --fix` e `ruff format` nos arquivos staged, e também `mypy .` no projeto inteiro, antes de cada commit — então a maioria dos problemas de lint, formatação ou tipo já é pega localmente antes de chegar no CI.
 
 ### Rodar contra outra URL
 

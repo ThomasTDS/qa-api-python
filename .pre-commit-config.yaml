@@ -5,3 +5,19 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
+  # Hook local (não o mirrors-mypy oficial) pra rodar o mesmo mypy já
+  # instalado via "pip install -e .[dev]", com a mesma versão e config do
+  # CI, em vez de duplicar as dependências de tipo num ambiente isolado à
+  # parte. Roda no projeto inteiro (não só nos arquivos staged), porque o
+  # modo strict do mypy depende de contexto entre módulos. Usa "python -m
+  # mypy" em vez do executável mypy.exe direto: em caminho com acento (ex:
+  # "Programação"), o mypy.exe falha silenciosamente no Windows.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: python -m mypy .
+        language: system
+        pass_filenames: false
+        types: [python]
