@@ -11,6 +11,10 @@ Este repositório contém testes automatizados da API pública **[restful-booker
 
 O objetivo é praticar testes de API "de verdade": autenticação, CRUD completo, diferença entre PUT e PATCH, e validação de regras de autorização.
 
+![Relatório de testes com 33 testes passando](docs/assets/report-example.png)
+
+*Exemplo do relatório de execução (captura de tela). O relatório ao vivo e sempre atualizado fica em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/).*
+
 ---
 
 ## Estrutura do Projeto
