@@ -72,6 +72,18 @@ def test_update_booking_sends_the_full_payload_with_the_auth_token_as_cookie(req
     assert requests_mock.last_request.headers["Cookie"] == "token=tok123"
 
 
+def test_update_booking_raw_sends_the_payload_as_is_with_the_auth_token_as_cookie(requests_mock: Mocker) -> None:
+    requests_mock.put(f"{BASE_URL}/booking/1", json={})
+    client = BookingApiClient(requests.Session(), BASE_URL)
+    payload = {"firstname": "Jane", "totalprice": "nao-e-numero"}
+
+    client.update_booking_raw(1, payload, token="tok123")
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.json() == payload
+    assert requests_mock.last_request.headers["Cookie"] == "token=tok123"
+
+
 def test_partial_update_booking_sends_only_the_given_fields(requests_mock: Mocker) -> None:
     requests_mock.patch(f"{BASE_URL}/booking/1", json={})
     client = BookingApiClient(requests.Session(), BASE_URL)

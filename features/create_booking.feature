@@ -31,3 +31,32 @@ Feature: Criação de booking
   Scenario: Criar booking com totalprice em formato inválido
     When ele cria um booking com totalprice em formato inválido
     Then a resposta da API não deve corresponder ao schema esperado
+
+  # A API não valida o tipo de depositpaid: qualquer string não vazia é
+  # coagida para true, então não existe forma de a API rejeitar um valor
+  # inválido nesse campo. Documentado em
+  # https://github.com/ThomasTDS/qa-api-python/issues/19.
+  @TC-017
+  Scenario: Criar booking com depositpaid em formato inválido
+    When ele cria um booking com depositpaid em formato inválido
+    Then o booking deve ser criado com sucesso
+    And o depositpaid do booking criado deve ser true
+
+  # Uma data de check-in com formato inválido não é validada nem rejeitada:
+  # o valor é processado e gravado corrompido (formato "NaN"), em vez de a
+  # API retornar 400. Documentado em
+  # https://github.com/ThomasTDS/qa-api-python/issues/20.
+  @TC-018
+  Scenario: Criar booking com checkin em formato inválido
+    When ele cria um booking com checkin em formato inválido
+    Then o booking deve ser criado com sucesso
+    And o checkin do booking criado deve estar corrompido
+
+  # Não há validação de regra de negócio para totalprice: valores negativos
+  # são aceitos normalmente, sem nenhuma restrição. Documentado em
+  # https://github.com/ThomasTDS/qa-api-python/issues/21.
+  @TC-019
+  Scenario: Criar booking com totalprice negativo
+    When ele cria um booking com totalprice negativo
+    Then o booking deve ser criado com sucesso
+    And o totalprice do booking criado deve ser negativo
