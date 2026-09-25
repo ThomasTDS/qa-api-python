@@ -44,6 +44,15 @@ class BookingApiClient:
             cookies={"token": token},
         )
 
+    # Variante crua de update_booking, para os testes de payload inválido no PUT
+    # (campos ausentes ou com tipo errado, que não passariam pelo tipo Booking).
+    def update_booking_raw(self, booking_id: int, payload: dict[str, Any], token: str) -> requests.Response:
+        return self.session.put(
+            f"{self.base_url}/booking/{booking_id}",
+            json=payload,
+            cookies={"token": token},
+        )
+
     def partial_update_booking(self, booking_id: int, partial_booking: dict[str, Any], token: str) -> requests.Response:
         return self.session.patch(
             f"{self.base_url}/booking/{booking_id}",

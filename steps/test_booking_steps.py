@@ -124,6 +124,66 @@ def resposta_nao_corresponde_ao_schema(context: Context) -> None:
         CreateBookingResponse.model_validate(context.last_response.json())
 
 
+@when("ele cria um booking com depositpaid em formato inválido")
+def cria_booking_com_depositpaid_invalido(context: Context) -> None:
+    payload = {
+        "firstname": "Fulano",
+        "lastname": "Ciclano",
+        "totalprice": 150,
+        "depositpaid": "sim",
+        "bookingdates": {"checkin": "2026-01-01", "checkout": "2026-01-05"},
+    }
+    context.last_response = context.booking_client.create_booking_raw(payload)
+    context.booking_id = context.last_response.json().get("bookingid")
+
+
+@then("o depositpaid do booking criado deve ser true")
+def depositpaid_do_booking_criado_deve_ser_true(context: Context) -> None:
+    assert context.last_response is not None
+    body = context.last_response.json()
+    assert body["booking"]["depositpaid"] is True
+
+
+@when("ele cria um booking com checkin em formato inválido")
+def cria_booking_com_checkin_invalido(context: Context) -> None:
+    payload = {
+        "firstname": "Fulano",
+        "lastname": "Ciclano",
+        "totalprice": 150,
+        "depositpaid": True,
+        "bookingdates": {"checkin": "data-invalida", "checkout": "2026-01-05"},
+    }
+    context.last_response = context.booking_client.create_booking_raw(payload)
+    context.booking_id = context.last_response.json().get("bookingid")
+
+
+@then("o checkin do booking criado deve estar corrompido")
+def checkin_do_booking_criado_deve_estar_corrompido(context: Context) -> None:
+    assert context.last_response is not None
+    checkin = context.last_response.json()["booking"]["bookingdates"]["checkin"]
+    assert checkin != "data-invalida"
+    assert "NaN" in checkin
+
+
+@when("ele cria um booking com totalprice negativo")
+def cria_booking_com_totalprice_negativo(context: Context) -> None:
+    payload = {
+        "firstname": "Fulano",
+        "lastname": "Ciclano",
+        "totalprice": -150,
+        "depositpaid": True,
+        "bookingdates": {"checkin": "2026-01-01", "checkout": "2026-01-05"},
+    }
+    context.last_response = context.booking_client.create_booking_raw(payload)
+    context.booking_id = context.last_response.json().get("bookingid")
+
+
+@then("o totalprice do booking criado deve ser negativo")
+def totalprice_do_booking_criado_deve_ser_negativo(context: Context) -> None:
+    assert context.last_response is not None
+    assert context.last_response.json()["booking"]["totalprice"] < 0
+
+
 # CONSULTA
 @when("ele busca o booking pelo id")
 def busca_o_booking_pelo_id(context: Context) -> None:
@@ -234,6 +294,80 @@ def sobrenome_do_booking_deve_ser(context: Context, lastname: str) -> None:
     assert context.last_response is not None
     body = Booking.model_validate(context.last_response.json())
     assert body.lastname == lastname
+
+
+@when("ele atualiza o booking com corpo vazio")
+def atualiza_o_booking_com_corpo_vazio(context: Context) -> None:
+    assert context.booking_id is not None
+    context.last_response = context.booking_client.update_booking_raw(context.booking_id, {}, context.token or "")
+
+
+@then("a resposta deve indicar requisição inválida")
+def resposta_indica_requisicao_invalida(context: Context) -> None:
+    assert context.last_response is not None
+    assert context.last_response.status_code == 400
+
+
+@when("ele atualiza o booking com totalprice em formato inválido")
+def atualiza_o_booking_com_totalprice_invalido(context: Context) -> None:
+    assert context.booking_data is not None
+    assert context.booking_id is not None
+    payload = {**context.booking_data.model_dump(exclude_none=True), "totalprice": "nao-e-numero"}
+    context.last_response = context.booking_client.update_booking_raw(context.booking_id, payload, context.token or "")
+
+
+@then("o totalprice do booking atualizado deve ser nulo")
+def totalprice_do_booking_atualizado_deve_ser_nulo(context: Context) -> None:
+    assert context.last_response is not None
+    assert context.last_response.json()["totalprice"] is None
+
+
+@when("ele atualiza o booking sem o campo bookingdates")
+def atualiza_o_booking_sem_bookingdates(context: Context) -> None:
+    assert context.booking_data is not None
+    assert context.booking_id is not None
+    payload = context.booking_data.model_dump(exclude_none=True)
+    del payload["bookingdates"]
+    context.last_response = context.booking_client.update_booking_raw(context.booking_id, payload, context.token or "")
+
+
+@when("ele atualiza parcialmente o booking com lastname em formato inválido")
+def atualiza_parcialmente_o_booking_com_lastname_invalido(context: Context) -> None:
+    assert context.booking_id is not None
+    context.last_response = context.booking_client.partial_update_booking(
+        context.booking_id, {"lastname": 12345}, context.token or ""
+    )
+
+
+@then("o lastname do booking atualizado deve ser o valor numérico enviado")
+def lastname_do_booking_atualizado_deve_ser_o_valor_numerico(context: Context) -> None:
+    assert context.last_response is not None
+    assert context.last_response.json()["lastname"] == 12345
+
+
+@when("ele atualiza parcialmente o booking com corpo vazio")
+def atualiza_parcialmente_o_booking_com_corpo_vazio(context: Context) -> None:
+    assert context.booking_id is not None
+    context.last_response = context.booking_client.partial_update_booking(context.booking_id, {}, context.token or "")
+
+
+@then("os dados do booking não devem ter sido alterados")
+def dados_do_booking_nao_devem_ter_sido_alterados(context: Context) -> None:
+    assert context.last_response is not None
+    body = Booking.model_validate(context.last_response.json())
+    assert body == context.booking_data
+
+
+@when(parsers.parse('ele tenta "{verbo}" um booking inexistente'))
+def tenta_verbo_um_booking_inexistente(context: Context, verbo: str) -> None:
+    if verbo == "atualizar":
+        context.last_response = context.booking_client.update_booking(
+            999999999, _default_booking(), context.token or ""
+        )
+    else:
+        context.last_response = context.booking_client.partial_update_booking(
+            999999999, {"lastname": "Novo"}, context.token or ""
+        )
 
 
 # REMOÇÃO
