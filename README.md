@@ -97,7 +97,7 @@ ruff format .             # formatação, aplica as correções
 pip-audit                 # checa dependências instaladas contra vulnerabilidades conhecidas
 ```
 
-O CI roda `mypy`, `ruff check`, `ruff format --check` e `pip-audit` antes dos testes, então mudanças com problema de tipo, estilo ou uma dependência vulnerável falham rápido, sem gastar tempo batendo na API pública. Uma vulnerabilidade encontrada pelo `pip-audit` quebra o CI — não tem como mergear sem resolver ou avaliar o caso pontualmente.
+O CI roda `mypy`, `ruff check`, `ruff format --check` e `pip-audit` no job `unit`, antes de qualquer teste contra a API, então mudanças com problema de tipo, estilo ou uma dependência vulnerável falham rápido, sem gastar tempo batendo na API pública. Uma vulnerabilidade encontrada pelo `pip-audit` quebra o CI — não tem como mergear sem resolver ou avaliar o caso pontualmente.
 
 Cada execução de `pytest` já gera cobertura de `api/` e `models/` (código dos API Clients e dos schemas), impressa no terminal e também em `reports/coverage.xml` (não versionado). No CI esse arquivo é enviado para o [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python), que mantém o histórico e mostra o badge no topo deste README.
 
@@ -155,7 +155,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Cobertura de código (`pytest-cov`) de `api/` e `models/` em cada execução, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - Limpeza automática: a fixture `context` remove o booking criado no cenário (via token próprio de limpeza) ao final de cada teste, evitando acúmulo de dados na API pública.
 - Retry automático só para falhas de rede (`pytest-rerunfailures`, com `--reruns 1` e `only_rerun` no `pyproject.toml`): um teste que falha por erro de conexão ou timeout roda uma segunda vez, amortecendo a instabilidade da API pública de demonstração. Falhas de asserção ou de schema nunca são repetidas, para que um bug intermitente não passe na segunda tentativa.
-- Integração contínua via GitHub Actions: os testes rodam automaticamente a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.
+- Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra a API pública. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.
 - Dependências atualizadas automaticamente pelo Dependabot (pip e GitHub Actions, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). PRs de patch/minor com CI verde são mergeados automaticamente ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
 - Auditoria de vulnerabilidades conhecidas nas dependências instaladas a cada execução do CI, via [`pip-audit`](https://github.com/pypa/pip-audit); encontrar uma vulnerabilidade quebra o build.
 - Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Scenario` e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
@@ -164,7 +164,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 
 ### Fluxo de Trabalho
 
-A branch `master` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que os checks de CI (`test (3.12)` e `test (3.13)`) e de cobertura do código novo no Codecov (`codecov/patch`) passarem. Fluxo padrão:
+A branch `master` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que os checks de CI (`unit (3.12)`, `unit (3.13)`, `integration (3.12)` e `integration (3.13)`) e de cobertura do código novo no Codecov (`codecov/patch`) passarem. Fluxo padrão:
 
 ```
 git checkout -b minha-branch
