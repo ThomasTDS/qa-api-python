@@ -138,6 +138,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 
 - BDD / Gherkin: cenários claros e legíveis em `.feature`, executados via `pytest-bdd`.
 - API Client Objects: `AuthApiClient` e `BookingApiClient` encapsulam as chamadas HTTP, do mesmo jeito que Page Objects encapsulam elementos de UI.
+- Timeout em todas as chamadas HTTP: os dois clients herdam de `BaseApiClient`, que aplica 5 segundos de limite para conectar e 30 para receber a resposta. Sem isso, o `requests` pode esperar indefinidamente, e uma API travada deixaria o CI parado até o limite de execução do GitHub Actions.
 - Pirâmide de testes: além dos cenários de BDD (`steps/`), que são testes de integração reais contra a `restful-booker`, `tests/unit/` cobre `api/` e `models/` de forma isolada, com `requests-mock` simulando as respostas HTTP — sem rede, sem depender da API pública estar no ar.
 - Validação de schema com [Pydantic](https://docs.pydantic.dev/): as respostas da API são validadas em tempo de execução contra os modelos em `models/booking.py` (fonte única de verdade), não só tipadas por anotação — se a API mudar o formato de uma resposta, o teste falha com uma mensagem clara em vez de passar silenciosamente ou quebrar mais adiante.
 - Cobertura de autenticação, CRUD completo, PUT vs. PATCH, e casos de acesso não autorizado (403).
