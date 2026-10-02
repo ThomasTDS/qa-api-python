@@ -27,6 +27,18 @@ class Context:
         self.booking_data: Booking | None = None
         self.last_response: requests.Response | None = None
 
+    # Atalho para os steps de verificação: falha com mensagem clara se o
+    # cenário chegou ao Then sem ter feito nenhuma requisição.
+    @property
+    def response(self) -> requests.Response:
+        assert self.last_response is not None, "nenhuma requisição foi feita neste cenário"
+        return self.last_response
+
+    # Cenários sem token mandam o cookie vazio, para testar o bloqueio da API.
+    @property
+    def token_or_empty(self) -> str:
+        return self.token or ""
+
 
 @pytest.fixture
 def context() -> Generator[Context, None, None]:
