@@ -11,7 +11,7 @@ Este repositório contém testes automatizados da API pública **[restful-booker
 
 O objetivo é praticar testes de API "de verdade": autenticação, CRUD completo, diferença entre PUT e PATCH, e validação de regras de autorização.
 
-![Relatório de testes com 33 testes passando](docs/assets/report-example.png)
+![Relatório de execução dos testes gerado pelo pytest-html](docs/assets/report-example.png)
 
 *Exemplo do relatório de execução (captura de tela). O relatório ao vivo e sempre atualizado fica em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/).*
 
@@ -24,21 +24,24 @@ qa-api-python/
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   └── bug_report.md   # Template de Issue para bugs reais
-│   └── workflows/
-│       └── tests.yml       # Pipeline de CI (push, PR e execução diária agendada)
+│   ├── workflows/
+│   │   ├── tests.yml                  # Pipeline de CI (push, PR e execução diária agendada)
+│   │   └── dependabot-auto-merge.yml  # Auto-merge de PRs de patch/minor do Dependabot
+│   └── dependabot.yml      # Atualização semanal de dependências (pip e GitHub Actions)
 ├── docs/
+│   ├── assets/             # Imagens usadas no README
 │   └── test-cases.md       # Matriz de rastreabilidade dos test cases
 ├── features/                # Cenários em Gherkin (.feature)
 ├── steps/                   # Implementação dos steps do pytest-bdd (testes de integração, batem na API real)
 ├── tests/
 │   └── unit/                # Testes unitários isolados de api/ e models/ (com requests-mock, sem rede)
-├── api/                     # API Clients (AuthApiClient, BookingApiClient)
+├── api/                     # API Clients (AuthApiClient e BookingApiClient, sobre a base comum BaseApiClient)
 ├── models/                  # Schemas Pydantic e tipos derivados (shape dos dados da API)
 ├── reports/                 # Relatório HTML e cobertura (coverage.xml) gerados a cada execução (não versionado)
 ├── conftest.py              # Fixtures (contexto por cenário) e captura de evidência de falha
-├── pyproject.toml           # Dependências, scripts e configuração (pytest, ruff, mypy)
+├── pyproject.toml           # Dependências e configuração (pytest, ruff, mypy)
 ├── .pre-commit-config.yaml  # Hooks de pre-commit (ruff, mypy)
-├── codecov.yml              # Metas de cobertura que bloqueiam o merge no Codecov
+├── codecov.yml              # Metas de cobertura verificadas pelo Codecov nos PRs
 ├── LICENSE
 └── README.md                # Este arquivo
 ```
@@ -98,7 +101,7 @@ O CI roda `mypy`, `ruff check`, `ruff format --check` e `pip-audit` antes dos te
 
 Cada execução de `pytest` já gera cobertura de `api/` e `models/` (código dos API Clients e dos schemas), impressa no terminal e também em `reports/coverage.xml` (não versionado). No CI esse arquivo é enviado para o [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python), que mantém o histórico e mostra o badge no topo deste README.
 
-O Codecov também bloqueia o merge do PR (configuração em `codecov.yml`) se: o código novo/alterado no PR (`patch`) não vier 100% coberto, ou se a cobertura total do projeto (`project`) cair mais de 1 ponto percentual — uma margem pequena, só pra não travar por causa de arredondamento.
+O Codecov também bloqueia o merge do PR (configuração em `codecov.yml`) se o código novo ou alterado no PR (`patch`) não vier 100% coberto. O `codecov.yml` também define uma meta para a cobertura total do projeto (`project`), que não pode cair mais de 1 ponto percentual, mas esse check é só informativo: não faz parte dos checks obrigatórios da branch.
 
 Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `pip install`) roda `ruff --fix` e `ruff format` nos arquivos staged, e também `mypy .` no projeto inteiro, antes de cada commit — então a maioria dos problemas de lint, formatação ou tipo já é pega localmente antes de chegar no CI.
 
@@ -155,7 +158,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 
 ### Fluxo de Trabalho
 
-A branch `master` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que os checks de CI (`test (3.12)` e `test (3.13)`) e de cobertura do Codecov passarem. Fluxo padrão:
+A branch `master` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que os checks de CI (`test (3.12)` e `test (3.13)`) e de cobertura do código novo no Codecov (`codecov/patch`) passarem. Fluxo padrão:
 
 ```
 git checkout -b minha-branch
