@@ -7,17 +7,17 @@ from models.booking import CreateBookingResponse
 from steps.booking_data import default_booking
 
 
-@given("que ele não possui nenhum token de autenticação")
+@given("que o usuário não possui nenhum token de autenticação")
 def sem_token_de_autenticacao(context: Context) -> None:
     context.token = None
 
 
-@given("que ele possui um token de autenticação válido")
+@given("que o usuário possui um token de autenticação válido")
 def com_token_de_autenticacao_valido(context: Context) -> None:
     context.token = context.auth_client.get_valid_token()
 
 
-@given("que ele possui um token de autenticação inválido")
+@given("que o usuário possui um token de autenticação inválido")
 def com_token_de_autenticacao_invalido(context: Context) -> None:
     context.token = "token-invalido-qualquer"
 
