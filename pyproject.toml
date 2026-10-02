@@ -33,6 +33,10 @@ include = ["api*", "models*"]
 [tool.pytest.ini_options]
 testpaths = ["steps", "tests"]
 addopts = "--reruns 1 --html=reports/report.html --self-contained-html --cov=api --cov=models --cov-report=term-missing --cov-report=xml:reports/coverage.xml"
+# O retry só vale para falhas de rede (conexão recusada ou timeout), que são
+# instabilidade da API pública. Falha de asserção ou de schema nunca é
+# repetida, para que um bug intermitente não passe na segunda tentativa.
+only_rerun = ["^(ConnectionError|ConnectTimeout|ReadTimeout):"]
 markers = [
     "smoke: fluxos ponta-a-ponta mais críticos (equivalente a npm run test:smoke)",
     "TC-001: id do test case, ver docs/test-cases.md",
