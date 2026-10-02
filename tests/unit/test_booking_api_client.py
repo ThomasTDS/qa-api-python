@@ -1,3 +1,5 @@
+from datetime import date
+
 import requests
 from requests_mock import Mocker
 
@@ -13,7 +15,7 @@ def _booking() -> Booking:
         lastname="Brown",
         totalprice=111,
         depositpaid=True,
-        bookingdates=BookingDates(checkin="2024-01-01", checkout="2024-01-02"),
+        bookingdates=BookingDates(checkin=date(2024, 1, 1), checkout=date(2024, 1, 2)),
         additionalneeds="Breakfast",
     )
 
@@ -56,7 +58,7 @@ def test_create_booking_sends_the_booking_payload_and_no_auth_cookie(requests_mo
     client.create_booking(booking)
 
     assert requests_mock.last_request is not None
-    assert requests_mock.last_request.json() == booking.model_dump(exclude_none=True)
+    assert requests_mock.last_request.json() == booking.model_dump(mode="json", exclude_none=True)
     assert "Cookie" not in requests_mock.last_request.headers
 
 
@@ -68,7 +70,7 @@ def test_update_booking_sends_the_full_payload_with_the_auth_token_as_cookie(req
     client.update_booking(1, booking, token="tok123")
 
     assert requests_mock.last_request is not None
-    assert requests_mock.last_request.json() == booking.model_dump(exclude_none=True)
+    assert requests_mock.last_request.json() == booking.model_dump(mode="json", exclude_none=True)
     assert requests_mock.last_request.headers["Cookie"] == "token=tok123"
 
 
