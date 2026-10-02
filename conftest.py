@@ -1,7 +1,9 @@
 import json
 import os
+import re
 import warnings
 from collections.abc import Generator
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -20,6 +22,28 @@ BASE_URL = os.environ.get("BASE_URL", "https://restful-booker.herokuapp.com")
 # o projeto rodar sem configuração. Outro ambiente pode usar credenciais próprias.
 API_USERNAME = os.environ.get("API_USERNAME", "admin")
 API_PASSWORD = os.environ.get("API_PASSWORD", "password123")
+
+
+FEATURES_DIR = Path(__file__).parent / "features"
+
+
+# Cada cenário tem uma tag @TC-XXX na linha logo acima de "Cenário:". Devolve,
+# para cada TC, o arquivo .feature e o número da linha do cenário. É a fonte
+# usada para registrar os marcadores e para conferir a matriz em docs/.
+def tc_scenarios() -> dict[str, tuple[str, int]]:
+    found: dict[str, tuple[str, int]] = {}
+    for path in sorted(FEATURES_DIR.glob("*.feature")):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            for tc in re.findall(r"@(TC-\d{3})\b", line):
+                assert tc not in found, f"{tc} aparece em mais de um cenário"
+                found[tc] = (path.name, index + 2)
+    return found
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    for tc in tc_scenarios():
+        config.addinivalue_line("markers", f"{tc}: id do test case, ver docs/test-cases.md")
 
 
 class Context:

@@ -37,7 +37,7 @@ qa-api-python/
 │   ├── common_steps.py      # Steps usados por mais de uma feature (tokens, booking criado, 403, 405)
 │   └── booking_data.py      # Booking padrão e payloads com campos inválidos
 ├── tests/
-│   └── unit/                # Testes unitários isolados de api/ e models/ (com requests-mock, sem rede)
+│   └── unit/                # Testes unitários isolados de api/ e models/ (com requests-mock, sem rede) e checagem da matriz de test cases
 ├── api/                     # API Clients (AuthApiClient e BookingApiClient, sobre a base comum BaseApiClient)
 ├── models/                  # Schemas Pydantic e tipos derivados (shape dos dados da API)
 ├── reports/                 # Relatório HTML e cobertura (coverage.xml) gerados a cada execução (não versionado)
@@ -162,7 +162,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra a API pública. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.
 - Dependências atualizadas automaticamente pelo Dependabot (pip e GitHub Actions, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). PRs de patch/minor com CI verde são mergeados automaticamente ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
 - Auditoria de vulnerabilidades conhecidas nas dependências instaladas a cada execução do CI, via [`pip-audit`](https://github.com/pypa/pip-audit); encontrar uma vulnerabilidade quebra o build.
-- Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Cenário` e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
+- Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Cenário`. Os marcadores `TC-XXX` são registrados automaticamente a partir das tags dos `.feature`, o pytest roda com `--strict-markers` (uma tag com erro de digitação quebra a coleta), e o teste [tests/unit/test_traceability.py](tests/unit/test_traceability.py) garante que a matriz lista exatamente os TCs dos `.feature`, com links para a linha certa de cada cenário e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
 
 ---
 
