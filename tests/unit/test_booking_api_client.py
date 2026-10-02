@@ -62,6 +62,18 @@ def test_create_booking_sends_the_booking_payload_and_no_auth_cookie(requests_mo
     assert "Cookie" not in requests_mock.last_request.headers
 
 
+def test_create_booking_raw_sends_the_payload_as_is_and_no_auth_cookie(requests_mock: Mocker) -> None:
+    requests_mock.post(f"{BASE_URL}/booking", json={})
+    client = BookingApiClient(requests.Session(), BASE_URL)
+    payload = {"firstname": "Jane", "totalprice": "nao-e-numero"}
+
+    client.create_booking_raw(payload)
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.json() == payload
+    assert "Cookie" not in requests_mock.last_request.headers
+
+
 def test_update_booking_sends_the_full_payload_with_the_auth_token_as_cookie(requests_mock: Mocker) -> None:
     requests_mock.put(f"{BASE_URL}/booking/1", json={})
     client = BookingApiClient(requests.Session(), BASE_URL)
