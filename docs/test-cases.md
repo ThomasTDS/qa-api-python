@@ -4,6 +4,8 @@ Rastreabilidade dos casos de teste do projeto. Esta tabela **não duplica** os p
 
 Um `Esquema do Cenário` com `Exemplos` conta como um único test case (a variação de dados não infla a contagem).
 
+A tabela é conferida automaticamente por [tests/unit/test_traceability.py](../tests/unit/test_traceability.py): todo TC dos `.feature` precisa estar aqui, e vice-versa, e cada link precisa apontar para a linha do `Cenário` correspondente.
+
 Legenda:
 
 - **Tipo**: `Funcional` (caminho feliz) ou `Negativo` (validação de erro/bloqueio esperado)

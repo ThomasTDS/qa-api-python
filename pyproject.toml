@@ -32,38 +32,16 @@ include = ["api*", "models*"]
 
 [tool.pytest.ini_options]
 testpaths = ["steps", "tests"]
-addopts = "--reruns 1 --html=reports/report.html --self-contained-html --cov=api --cov=models --cov-report=term-missing --cov-report=xml:reports/coverage.xml"
+addopts = "--strict-markers --reruns 1 --html=reports/report.html --self-contained-html --cov=api --cov=models --cov-report=term-missing --cov-report=xml:reports/coverage.xml"
 # O retry só vale para falhas de rede (conexão recusada ou timeout), que são
 # instabilidade da API pública. Falha de asserção ou de schema nunca é
 # repetida, para que um bug intermitente não passe na segunda tentativa.
 only_rerun = ["^(ConnectionError|ConnectTimeout|ReadTimeout):"]
+# Os marcadores TC-XXX são registrados no conftest.py, a partir das tags dos
+# arquivos .feature. Com --strict-markers, uma tag com erro de digitação
+# quebra a coleta em vez de virar só um aviso.
 markers = [
     "smoke: fluxos ponta-a-ponta mais críticos (pytest -m smoke)",
-    "TC-001: id do test case, ver docs/test-cases.md",
-    "TC-002: id do test case, ver docs/test-cases.md",
-    "TC-003: id do test case, ver docs/test-cases.md",
-    "TC-004: id do test case, ver docs/test-cases.md",
-    "TC-005: id do test case, ver docs/test-cases.md",
-    "TC-006: id do test case, ver docs/test-cases.md",
-    "TC-007: id do test case, ver docs/test-cases.md",
-    "TC-008: id do test case, ver docs/test-cases.md",
-    "TC-009: id do test case, ver docs/test-cases.md",
-    "TC-010: id do test case, ver docs/test-cases.md",
-    "TC-011: id do test case, ver docs/test-cases.md",
-    "TC-012: id do test case, ver docs/test-cases.md",
-    "TC-013: id do test case, ver docs/test-cases.md",
-    "TC-014: id do test case, ver docs/test-cases.md",
-    "TC-015: id do test case, ver docs/test-cases.md",
-    "TC-016: id do test case, ver docs/test-cases.md",
-    "TC-017: id do test case, ver docs/test-cases.md",
-    "TC-018: id do test case, ver docs/test-cases.md",
-    "TC-019: id do test case, ver docs/test-cases.md",
-    "TC-020: id do test case, ver docs/test-cases.md",
-    "TC-021: id do test case, ver docs/test-cases.md",
-    "TC-022: id do test case, ver docs/test-cases.md",
-    "TC-023: id do test case, ver docs/test-cases.md",
-    "TC-024: id do test case, ver docs/test-cases.md",
-    "TC-025: id do test case, ver docs/test-cases.md",
 ]
 
 [tool.ruff]
