@@ -32,7 +32,10 @@ qa-api-python/
 │   ├── assets/             # Imagens usadas no README
 │   └── test-cases.md       # Matriz de rastreabilidade dos test cases
 ├── features/                # Cenários em Gherkin (.feature)
-├── steps/                   # Implementação dos steps do pytest-bdd (testes de integração, batem na API real)
+├── steps/                   # Steps do pytest-bdd (testes de integração, batem na API real)
+│   ├── test_<feature>.py    # Um módulo por arquivo .feature, com os steps exclusivos dele
+│   ├── common_steps.py      # Steps usados por mais de uma feature (tokens, booking criado, 403, 405)
+│   └── booking_data.py      # Booking padrão e payloads com campos inválidos
 ├── tests/
 │   └── unit/                # Testes unitários isolados de api/ e models/ (com requests-mock, sem rede)
 ├── api/                     # API Clients (AuthApiClient e BookingApiClient, sobre a base comum BaseApiClient)
