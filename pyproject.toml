@@ -38,7 +38,7 @@ addopts = "--reruns 1 --html=reports/report.html --self-contained-html --cov=api
 # repetida, para que um bug intermitente não passe na segunda tentativa.
 only_rerun = ["^(ConnectionError|ConnectTimeout|ReadTimeout):"]
 markers = [
-    "smoke: fluxos ponta-a-ponta mais críticos (equivalente a npm run test:smoke)",
+    "smoke: fluxos ponta-a-ponta mais críticos (pytest -m smoke)",
     "TC-001: id do test case, ver docs/test-cases.md",
     "TC-002: id do test case, ver docs/test-cases.md",
     "TC-003: id do test case, ver docs/test-cases.md",
