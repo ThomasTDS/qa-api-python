@@ -1,10 +1,12 @@
 import json
 import os
+import warnings
 from collections.abc import Generator
 from typing import Any
 
 import pytest
 import requests
+from pydantic import ValidationError
 
 from api.auth_api_client import AuthApiClient
 from api.booking_api_client import BookingApiClient
@@ -53,8 +55,13 @@ def context() -> Generator[Context, None, None]:
         try:
             cleanup_token = ctx.auth_client.get_valid_token()
             ctx.booking_client.delete_booking(ctx.booking_id, cleanup_token)
-        except Exception:
-            pass  # booking já pode ter sido removido pelo próprio cenário; ignora falha de limpeza
+        except (requests.RequestException, ValidationError) as error:
+            # Falha de rede ou de autenticação na limpeza não muda o resultado
+            # do teste, que já verificou o que precisava, mas deixa o booking
+            # para trás na API pública. O aviso aparece no resumo do pytest.
+            # (Se o próprio cenário já removeu o booking, a API só devolve um
+            # status de erro, sem exceção, e nada é avisado.)
+            warnings.warn(f"booking {ctx.booking_id} não foi removido na limpeza: {error}", stacklevel=1)
 
     session.close()
 
