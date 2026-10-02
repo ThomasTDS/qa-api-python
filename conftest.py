@@ -10,6 +10,9 @@ from api.auth_api_client import AuthApiClient
 from api.booking_api_client import BookingApiClient
 from models.booking import Booking
 
+# Steps compartilhados entre features (tokens, booking criado, 403 e 405).
+pytest_plugins = ["steps.common_steps"]
+
 BASE_URL = os.environ.get("BASE_URL", "https://restful-booker.herokuapp.com")
 # O padrão são as credenciais públicas da documentação da restful-booker, para
 # o projeto rodar sem configuração. Outro ambiente pode usar credenciais próprias.
