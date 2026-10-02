@@ -1,8 +1,8 @@
 # Matriz de Test Cases
 
-Rastreabilidade dos casos de teste do projeto. Esta tabela **não duplica** os passos dos cenários — eles já estão documentados em Gherkin nos arquivos `.feature`, com o ID do test case como tag (`@TC-XXX`) em cada `Scenario`, garantindo rastreabilidade bidirecional.
+Rastreabilidade dos casos de teste do projeto. Esta tabela **não duplica** os passos dos cenários — eles já estão documentados em Gherkin nos arquivos `.feature`, com o ID do test case como tag (`@TC-XXX`) em cada `Cenário`, garantindo rastreabilidade bidirecional.
 
-Um `Scenario Outline` com `Examples` conta como um único test case (a variação de dados não infla a contagem).
+Um `Esquema do Cenário` com `Exemplos` conta como um único test case (a variação de dados não infla a contagem).
 
 Legenda:
 
@@ -11,32 +11,32 @@ Legenda:
 - **Automação**: `Automatizado` / `Manual` / `Planejado` (identificado, ainda não implementado)
 
 | ID     | Módulo       | Título                                                  | Tipo      | Prioridade | Automação    | Cenário                                                               |
-| ------ | ------------ | -------------------------------------------------------- | --------- | ---------- | ------------ | ---------------------------------------------------------------------- |
-| TC-001 | Autenticação | Gerar token com credenciais válidas                     | Funcional | Crítica    | Automatizado | [auth.feature:3](../features/auth.feature#L3)                          |
-| TC-002 | Autenticação | Tentar gerar token com credenciais inválidas            | Negativo  | Alta       | Automatizado | [auth.feature:7](../features/auth.feature#L7)                          |
-| TC-003 | Criação      | Criar booking sem nenhum token de autenticação          | Funcional | Alta       | Automatizado | [create_booking.feature:7](../features/create_booking.feature#L7)      |
-| TC-004 | Consulta     | Buscar um booking existente pelo id                     | Funcional | Alta       | Automatizado | [get_booking.feature:3](../features/get_booking.feature#L3)            |
-| TC-005 | Consulta     | Buscar um booking inexistente                           | Negativo  | Média      | Automatizado | [get_booking.feature:8](../features/get_booking.feature#L8)            |
-| TC-006 | Consulta     | Buscar bookings filtrando por firstname e lastname      | Funcional | Média      | Automatizado | [get_booking.feature:15](../features/get_booking.feature#L15)          |
-| TC-007 | Atualização  | Atualizar booking com token válido (PUT)                | Funcional | Crítica    | Automatizado | [update_booking.feature:4](../features/update_booking.feature#L4)      |
-| TC-008 | Atualização  | Tentar atualizar booking sem token de autenticação      | Negativo  | Alta       | Automatizado | [update_booking.feature:10](../features/update_booking.feature#L10)    |
-| TC-009 | Atualização  | Atualizar parcialmente o booking com PATCH              | Funcional | Média      | Automatizado | [update_booking.feature:27](../features/update_booking.feature#L27)    |
-| TC-010 | Remoção      | Remover booking com token válido                        | Funcional | Crítica    | Automatizado | [delete_booking.feature:3](../features/delete_booking.feature#L3)      |
-| TC-011 | Remoção      | Tentar remover booking sem token de autenticação        | Negativo  | Alta       | Automatizado | [delete_booking.feature:9](../features/delete_booking.feature#L9)      |
-| TC-012 | Atualização  | Tentar atualizar parcialmente booking sem token (PATCH) | Negativo  | Alta       | Automatizado | [update_booking.feature:36](../features/update_booking.feature#L36)    |
-| TC-013 | Atualização  | Tentar atualizar booking com token inválido (PUT)       | Negativo  | Alta       | Automatizado | [update_booking.feature:17](../features/update_booking.feature#L17)    |
-| TC-014 | Remoção      | Tentar remover um booking que não existe                | Negativo  | Baixa      | Automatizado | [delete_booking.feature:16](../features/delete_booking.feature#L16)    |
-| TC-015 | Criação      | Tentar criar booking sem um campo obrigatório (bug)     | Negativo  | Média      | Automatizado | [create_booking.feature:13](../features/create_booking.feature#L13)    |
-| TC-016 | Criação      | Criar booking com totalprice em formato inválido        | Negativo  | Média      | Automatizado | [create_booking.feature:24](../features/create_booking.feature#L24)    |
-| TC-017 | Criação      | Criar booking com depositpaid em formato inválido       | Negativo  | Média      | Automatizado | [create_booking.feature:39](../features/create_booking.feature#L39)    |
-| TC-018 | Criação      | Criar booking com checkin em formato inválido           | Negativo  | Média      | Automatizado | [create_booking.feature:49](../features/create_booking.feature#L49)    |
-| TC-019 | Criação      | Criar booking com totalprice negativo                   | Negativo  | Baixa      | Automatizado | [create_booking.feature:58](../features/create_booking.feature#L58)    |
-| TC-020 | Atualização  | Tentar atualizar booking com corpo vazio (PUT)          | Negativo  | Alta       | Automatizado | [update_booking.feature:47](../features/update_booking.feature#L47)    |
-| TC-021 | Atualização  | Atualizar booking com totalprice em formato inválido    | Negativo  | Média      | Automatizado | [update_booking.feature:59](../features/update_booking.feature#L59)    |
-| TC-022 | Atualização  | Tentar atualizar booking sem o campo bookingdates       | Negativo  | Alta       | Automatizado | [update_booking.feature:67](../features/update_booking.feature#L67)    |
-| TC-023 | Atualização  | Atualizar parcialmente com lastname em formato inválido | Negativo  | Média      | Automatizado | [update_booking.feature:77](../features/update_booking.feature#L77)    |
-| TC-024 | Atualização  | Atualizar parcialmente com corpo vazio não altera nada  | Funcional | Baixa      | Automatizado | [update_booking.feature:87](../features/update_booking.feature#L87)    |
-| TC-025 | Atualização  | Tentar atualizar (PUT/PATCH) um booking inexistente     | Negativo  | Média      | Automatizado | [update_booking.feature:100](../features/update_booking.feature#L100)  |
+| ------ | ------------ | ------------------------------------------------------- | --------- | ---------- | ------------ | --------------------------------------------------------------------- |
+| TC-001 | Autenticação | Gerar token com credenciais válidas                     | Funcional | Crítica    | Automatizado | [auth.feature:5](../features/auth.feature#L5)                         |
+| TC-002 | Autenticação | Tentar gerar token com credenciais inválidas            | Negativo  | Alta       | Automatizado | [auth.feature:10](../features/auth.feature#L10)                       |
+| TC-003 | Criação      | Criar booking sem nenhum token de autenticação          | Funcional | Alta       | Automatizado | [create_booking.feature:9](../features/create_booking.feature#L9)     |
+| TC-004 | Consulta     | Buscar um booking existente pelo id                     | Funcional | Alta       | Automatizado | [get_booking.feature:5](../features/get_booking.feature#L5)           |
+| TC-005 | Consulta     | Buscar um booking inexistente                           | Negativo  | Média      | Automatizado | [get_booking.feature:11](../features/get_booking.feature#L11)         |
+| TC-006 | Consulta     | Buscar bookings filtrando por firstname e lastname      | Funcional | Média      | Automatizado | [get_booking.feature:16](../features/get_booking.feature#L16)         |
+| TC-007 | Atualização  | Atualizar booking com token válido (PUT)                | Funcional | Crítica    | Automatizado | [update_booking.feature:6](../features/update_booking.feature#L6)     |
+| TC-008 | Atualização  | Tentar atualizar booking sem token de autenticação      | Negativo  | Alta       | Automatizado | [update_booking.feature:13](../features/update_booking.feature#L13)   |
+| TC-009 | Atualização  | Atualizar parcialmente o booking com PATCH              | Funcional | Média      | Automatizado | [update_booking.feature:31](../features/update_booking.feature#L31)   |
+| TC-010 | Remoção      | Remover booking com token válido                        | Funcional | Crítica    | Automatizado | [delete_booking.feature:5](../features/delete_booking.feature#L5)     |
+| TC-011 | Remoção      | Tentar remover booking sem token de autenticação        | Negativo  | Alta       | Automatizado | [delete_booking.feature:12](../features/delete_booking.feature#L12)   |
+| TC-012 | Atualização  | Tentar atualizar parcialmente booking sem token (PATCH) | Negativo  | Alta       | Automatizado | [update_booking.feature:39](../features/update_booking.feature#L39)   |
+| TC-013 | Atualização  | Tentar atualizar booking com token inválido (PUT)       | Negativo  | Alta       | Automatizado | [update_booking.feature:23](../features/update_booking.feature#L23)   |
+| TC-014 | Remoção      | Tentar remover um booking que não existe                | Negativo  | Baixa      | Automatizado | [delete_booking.feature:22](../features/delete_booking.feature#L22)   |
+| TC-015 | Criação      | Tentar criar booking sem um campo obrigatório (bug)     | Negativo  | Média      | Automatizado | [create_booking.feature:22](../features/create_booking.feature#L22)   |
+| TC-016 | Criação      | Criar booking com totalprice em formato inválido        | Negativo  | Média      | Automatizado | [create_booking.feature:32](../features/create_booking.feature#L32)   |
+| TC-017 | Criação      | Criar booking com depositpaid em formato inválido       | Negativo  | Média      | Automatizado | [create_booking.feature:41](../features/create_booking.feature#L41)   |
+| TC-018 | Criação      | Criar booking com checkin em formato inválido           | Negativo  | Média      | Automatizado | [create_booking.feature:51](../features/create_booking.feature#L51)   |
+| TC-019 | Criação      | Criar booking com totalprice negativo                   | Negativo  | Baixa      | Automatizado | [create_booking.feature:60](../features/create_booking.feature#L60)   |
+| TC-020 | Atualização  | Tentar atualizar booking com corpo vazio (PUT)          | Negativo  | Alta       | Automatizado | [update_booking.feature:49](../features/update_booking.feature#L49)   |
+| TC-021 | Atualização  | Atualizar booking com totalprice em formato inválido    | Negativo  | Média      | Automatizado | [update_booking.feature:61](../features/update_booking.feature#L61)   |
+| TC-022 | Atualização  | Tentar atualizar booking sem o campo bookingdates       | Negativo  | Alta       | Automatizado | [update_booking.feature:69](../features/update_booking.feature#L69)   |
+| TC-023 | Atualização  | Atualizar parcialmente com lastname em formato inválido | Negativo  | Média      | Automatizado | [update_booking.feature:79](../features/update_booking.feature#L79)   |
+| TC-024 | Atualização  | Atualizar parcialmente com corpo vazio não altera nada  | Funcional | Baixa      | Automatizado | [update_booking.feature:89](../features/update_booking.feature#L89)   |
+| TC-025 | Atualização  | Tentar atualizar (PUT/PATCH) um booking inexistente     | Negativo  | Média      | Automatizado | [update_booking.feature:102](../features/update_booking.feature#L102) |
 
 `BookingApiClient.get_booking_ids` também aceita filtro por `checkin`/`checkout`, mas o TC-006 cobre só `firstname`/`lastname`: o filtro por data na API pública de demonstração é conhecido por ser instável, e testá-lo arriscaria um teste flaky em vez de validar um comportamento real.
 

@@ -1,15 +1,16 @@
-Feature: Criação de booking
+# language: pt
+Funcionalidade: Criação de booking
 
   # A documentação da API indica que POST /booking não exige autenticação.
   # Ou seja, qualquer pessoa consegue criar um booking sem token — uma falha
   # de controle de acesso do próprio app de demonstração, e vale documentar
   # esse comportamento em vez de presumir que a criação seria bloqueada.
   @TC-003 @smoke
-  Scenario: Criar booking sem nenhum token de autenticação
-    Given que ele não possui nenhum token de autenticação
-    When ele cria um booking com dados válidos
-    Then o booking deve ser criado com sucesso
-    And o id do booking criado deve ser retornado
+  Cenário: Criar booking sem nenhum token de autenticação
+    Dado que o usuário não possui nenhum token de autenticação
+    Quando o usuário cria um booking com dados válidos
+    Então o booking deve ser criado com sucesso
+    E o id do booking criado deve ser retornado
 
   # Bug real da API, documentado em
   # https://github.com/ThomasTDS/qa-api-python/issues/8: em vez de rejeitar
@@ -18,9 +19,9 @@ Feature: Criação de booking
   # é sinal de que o bug foi corrigido do lado de lá, e cabe atualizar o
   # teste (e fechar a issue).
   @TC-015
-  Scenario: Tentar criar booking sem um campo obrigatório
-    When ele tenta criar um booking sem informar o firstname
-    Then a resposta deve indicar um erro interno do servidor
+  Cenário: Tentar criar booking sem um campo obrigatório
+    Quando o usuário tenta criar um booking sem informar o firstname
+    Então a resposta deve indicar um erro interno do servidor
 
   # A API aceita um totalprice em formato errado (texto em vez de número) e
   # devolve 200, gravando null no lugar em silêncio, em vez de rejeitar o
@@ -28,35 +29,35 @@ Feature: Criação de booking
   # essa corrupção: a resposta não bate com o modelo Booking, e o teste
   # acusa o problema em vez de aceitar o dado corrompido como válido.
   @TC-016
-  Scenario: Criar booking com totalprice em formato inválido
-    When ele cria um booking com totalprice em formato inválido
-    Then a resposta da API não deve corresponder ao schema esperado
+  Cenário: Criar booking com totalprice em formato inválido
+    Quando o usuário cria um booking com totalprice em formato inválido
+    Então a resposta da API não deve corresponder ao schema esperado
 
   # A API não valida o tipo de depositpaid: qualquer string não vazia é
   # coagida para true, então não existe forma de a API rejeitar um valor
   # inválido nesse campo. Documentado em
   # https://github.com/ThomasTDS/qa-api-python/issues/19.
   @TC-017
-  Scenario: Criar booking com depositpaid em formato inválido
-    When ele cria um booking com depositpaid em formato inválido
-    Then o booking deve ser criado com sucesso
-    And o depositpaid do booking criado deve ser true
+  Cenário: Criar booking com depositpaid em formato inválido
+    Quando o usuário cria um booking com depositpaid em formato inválido
+    Então o booking deve ser criado com sucesso
+    E o depositpaid do booking criado deve ser true
 
   # Uma data de check-in com formato inválido não é validada nem rejeitada:
   # o valor é processado e gravado corrompido (formato "NaN"), em vez de a
   # API retornar 400. Documentado em
   # https://github.com/ThomasTDS/qa-api-python/issues/20.
   @TC-018
-  Scenario: Criar booking com checkin em formato inválido
-    When ele cria um booking com checkin em formato inválido
-    Then o booking deve ser criado com sucesso
-    And o checkin do booking criado deve estar corrompido
+  Cenário: Criar booking com checkin em formato inválido
+    Quando o usuário cria um booking com checkin em formato inválido
+    Então o booking deve ser criado com sucesso
+    E o checkin do booking criado deve estar corrompido
 
   # Não há validação de regra de negócio para totalprice: valores negativos
   # são aceitos normalmente, sem nenhuma restrição. Documentado em
   # https://github.com/ThomasTDS/qa-api-python/issues/21.
   @TC-019
-  Scenario: Criar booking com totalprice negativo
-    When ele cria um booking com totalprice negativo
-    Then o booking deve ser criado com sucesso
-    And o totalprice do booking criado deve ser negativo
+  Cenário: Criar booking com totalprice negativo
+    Quando o usuário cria um booking com totalprice negativo
+    Então o booking deve ser criado com sucesso
+    E o totalprice do booking criado deve ser negativo
