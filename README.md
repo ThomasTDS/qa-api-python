@@ -105,16 +105,22 @@ O Codecov também bloqueia o merge do PR (configuração em `codecov.yml`) se o 
 
 Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `pip install`) roda `ruff --fix` e `ruff format` nos arquivos staged, e também `mypy .` no projeto inteiro, antes de cada commit — então a maioria dos problemas de lint, formatação ou tipo já é pega localmente antes de chegar no CI.
 
-### Rodar contra outra URL
+### Rodar contra outro ambiente
 
-Por padrão os testes apontam para `https://restful-booker.herokuapp.com`. Para rodar contra outro ambiente (ex: uma instância local ou de staging), defina a variável de ambiente `BASE_URL`:
+Por padrão os testes apontam para `https://restful-booker.herokuapp.com` e se autenticam com as credenciais públicas da documentação da API (`admin` / `password123`). Para rodar contra outro ambiente (ex: uma instância local ou de staging), defina as variáveis de ambiente:
+
+| Variável       | Padrão                                  | Uso                                  |
+| -------------- | --------------------------------------- | ------------------------------------ |
+| `BASE_URL`     | `https://restful-booker.herokuapp.com` | Endereço da API                      |
+| `API_USERNAME` | `admin`                                 | Usuário usado para gerar o token     |
+| `API_PASSWORD` | `password123`                           | Senha usada para gerar o token       |
 
 ```
 # PowerShell
-$env:BASE_URL="http://localhost:3001"; pytest
+$env:BASE_URL="http://localhost:3001"; $env:API_USERNAME="usuario"; $env:API_PASSWORD="senha"; pytest
 
 # bash
-BASE_URL=http://localhost:3001 pytest
+BASE_URL=http://localhost:3001 API_USERNAME=usuario API_PASSWORD=senha pytest
 ```
 
 ---
@@ -131,7 +137,7 @@ BASE_URL=http://localhost:3001 pytest
 | PATCH  | `/booking/:id` | Atualiza parcialmente um booking                   |
 | DELETE | `/booking/:id` | Remove um booking                                  |
 
-Autenticação: `POST /auth` com `{ "username": "admin", "password": "password123" }` retorna um token, enviado nas chamadas de `PUT`, `PATCH` e `DELETE` via cookie `token=<valor>`.
+Autenticação: `POST /auth` com `{ "username": "admin", "password": "password123" }` (credenciais públicas da documentação da API, configuráveis por `API_USERNAME` e `API_PASSWORD`) retorna um token, enviado nas chamadas de `PUT`, `PATCH` e `DELETE` via cookie `token=<valor>`.
 
 **Observação de segurança:** `POST /booking` (criação) **não exige autenticação** — qualquer pessoa consegue criar bookings sem token. Isso é uma falha de controle de acesso do próprio app de demonstração, e está coberta explicitamente em [features/create_booking.feature](features/create_booking.feature) como comportamento documentado, não como bug do teste.
 

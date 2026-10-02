@@ -37,6 +37,12 @@ def com_token_de_autenticacao_invalido(context: Context) -> None:
     context.token = "token-invalido-qualquer"
 
 
+@when("ele solicita um token com credenciais válidas")
+def solicita_um_token_com_credenciais_validas(context: Context) -> None:
+    client = context.auth_client
+    context.last_response = client.create_token(client.username, client.password)
+
+
 @when(parsers.parse('ele solicita um token com o usuário "{username}" e a senha "{password}"'))
 def solicita_um_token(context: Context, username: str, password: str) -> None:
     context.last_response = context.auth_client.create_token(username, password)

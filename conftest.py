@@ -11,12 +11,16 @@ from api.booking_api_client import BookingApiClient
 from models.booking import Booking
 
 BASE_URL = os.environ.get("BASE_URL", "https://restful-booker.herokuapp.com")
+# O padrão são as credenciais públicas da documentação da restful-booker, para
+# o projeto rodar sem configuração. Outro ambiente pode usar credenciais próprias.
+API_USERNAME = os.environ.get("API_USERNAME", "admin")
+API_PASSWORD = os.environ.get("API_PASSWORD", "password123")
 
 
 class Context:
     def __init__(self, session: requests.Session) -> None:
         self.session = session
-        self.auth_client = AuthApiClient(session, BASE_URL)
+        self.auth_client = AuthApiClient(session, BASE_URL, API_USERNAME, API_PASSWORD)
         self.booking_client = BookingApiClient(session, BASE_URL)
         self.token: str | None = None
         self.booking_id: int | None = None
