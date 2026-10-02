@@ -27,7 +27,7 @@ qa-api-python/
 │   ├── workflows/
 │   │   ├── tests.yml                  # Pipeline de CI (push, PR e execução diária agendada)
 │   │   └── dependabot-auto-merge.yml  # Auto-merge de PRs de patch/minor do Dependabot
-│   └── dependabot.yml      # Atualização semanal de dependências (pip e GitHub Actions)
+│   └── dependabot.yml      # Atualização semanal de dependências (uv e GitHub Actions)
 ├── docs/
 │   ├── assets/             # Imagens usadas no README
 │   └── test-cases.md       # Matriz de rastreabilidade dos test cases
@@ -43,6 +43,7 @@ qa-api-python/
 ├── reports/                 # Relatório HTML e cobertura (coverage.xml) gerados a cada execução (não versionado)
 ├── conftest.py              # Fixtures (contexto por cenário) e captura de evidência de falha
 ├── pyproject.toml           # Dependências e configuração (pytest, ruff, mypy)
+├── uv.lock                  # Versões exatas de todas as dependências (gerado pelo uv)
 ├── .pre-commit-config.yaml  # Hooks de pre-commit (ruff, mypy)
 ├── codecov.yml              # Metas de cobertura verificadas pelo Codecov nos PRs
 ├── LICENSE
@@ -53,14 +54,17 @@ qa-api-python/
 
 ### Instalar Dependências
 
+As versões exatas de todas as dependências, inclusive as indiretas, ficam travadas no `uv.lock`, gerado pelo [uv](https://docs.astral.sh/uv/). Com o uv instalado (ver a [documentação oficial](https://docs.astral.sh/uv/getting-started/installation/), ou `pip install uv`):
+
 ```
-python -m venv .venv
+uv sync --extra dev          # cria o .venv e instala exatamente o que está no uv.lock
 .venv\Scripts\activate       # PowerShell / Windows
 source .venv/bin/activate    # bash / Linux / macOS
 
-pip install -e ".[dev]"
 pre-commit install
 ```
+
+Ao alterar uma dependência no `pyproject.toml`, rode `uv lock` e versione o `uv.lock` junto. O CI instala com `uv sync --locked` e falha se os dois arquivos estiverem fora de sincronia.
 
 Não é necessário instalar nenhum navegador: como são testes de API, só a biblioteca `requests` é usada para fazer as chamadas HTTP.
 
@@ -97,7 +101,7 @@ mypy .                    # typecheck
 ruff check .              # lint
 ruff format --check .     # formatação, só verifica
 ruff format .             # formatação, aplica as correções
-pip-audit                 # checa dependências instaladas contra vulnerabilidades conhecidas
+pip-audit --skip-editable # checa dependências instaladas contra vulnerabilidades conhecidas
 ```
 
 O CI roda `mypy`, `ruff check`, `ruff format --check` e `pip-audit` no job `unit`, antes de qualquer teste contra a API, então mudanças com problema de tipo, estilo ou uma dependência vulnerável falham rápido, sem gastar tempo batendo na API pública. Uma vulnerabilidade encontrada pelo `pip-audit` quebra o CI — não tem como mergear sem resolver ou avaliar o caso pontualmente.
@@ -106,7 +110,7 @@ Cada execução de `pytest` já gera cobertura de `api/` e `models/` (código do
 
 O Codecov também bloqueia o merge do PR (configuração em `codecov.yml`) se o código novo ou alterado no PR (`patch`) não vier 100% coberto. O `codecov.yml` também define uma meta para a cobertura total do projeto (`project`), que não pode cair mais de 1 ponto percentual, mas esse check é só informativo: não faz parte dos checks obrigatórios da branch.
 
-Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `pip install`) roda `ruff --fix` e `ruff format` nos arquivos staged, e também `mypy .` no projeto inteiro, antes de cada commit — então a maioria dos problemas de lint, formatação ou tipo já é pega localmente antes de chegar no CI.
+Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `uv sync`) roda `ruff --fix` e `ruff format` nos arquivos staged, e também `mypy .` no projeto inteiro, antes de cada commit — então a maioria dos problemas de lint, formatação ou tipo já é pega localmente antes de chegar no CI.
 
 ### Rodar contra outro ambiente
 
@@ -160,7 +164,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Dados de teste únicos: cada booking criado leva um sufixo aleatório no sobrenome (ex: `Ciclano-3f9a1c`). Como a API pública é compartilhada, inclusive pelas execuções paralelas do CI, a busca por nome encontra só o booking do próprio teste.
 - Retry automático só para falhas de rede (`pytest-rerunfailures`, com `--reruns 1` e `only_rerun` no `pyproject.toml`): um teste que falha por erro de conexão ou timeout roda uma segunda vez, amortecendo a instabilidade da API pública de demonstração. Falhas de asserção ou de schema nunca são repetidas, para que um bug intermitente não passe na segunda tentativa.
 - Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra a API pública. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.
-- Dependências atualizadas automaticamente pelo Dependabot (pip e GitHub Actions, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). PRs de patch/minor com CI verde são mergeados automaticamente ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
+- Dependências atualizadas automaticamente pelo Dependabot (uv e GitHub Actions, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). PRs de patch/minor com CI verde são mergeados automaticamente ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
 - Auditoria de vulnerabilidades conhecidas nas dependências instaladas a cada execução do CI, via [`pip-audit`](https://github.com/pypa/pip-audit); encontrar uma vulnerabilidade quebra o build.
 - Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Cenário`. Os marcadores `TC-XXX` são registrados automaticamente a partir das tags dos `.feature`, o pytest roda com `--strict-markers` (uma tag com erro de digitação quebra a coleta), e o teste [tests/unit/test_traceability.py](tests/unit/test_traceability.py) garante que a matriz lista exatamente os TCs dos `.feature`, com links para a linha certa de cada cenário e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
 

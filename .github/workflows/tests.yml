@@ -11,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# O "uv sync --locked" de cada job já instala tudo a partir do uv.lock; com
+# UV_NO_SYNC, os "uv run" seguintes usam esse ambiente sem tentar ajustá-lo.
+env:
+  UV_NO_SYNC: '1'
+
 jobs:
   # Checagens que não dependem da API pública: tipos, lint, formatação,
   # dependências vulneráveis e testes unitários (com requests-mock, sem rede).
@@ -26,31 +31,31 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v7
 
-      - name: Configurar Python
-        uses: actions/setup-python@v7
+      - name: Instalar uv e Python
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          enable-cache: true
 
+      # --locked: instala exatamente o que está no uv.lock e falha se o lock
+      # estiver desatualizado em relação ao pyproject.toml.
       - name: Instalar dependências
-        run: |
-          pip install --upgrade pip
-          pip install -e ".[dev]"
+        run: uv sync --locked --extra dev
 
       - name: Checar tipos
-        run: mypy .
+        run: uv run mypy .
 
       - name: Lint
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Verificar formatação
-        run: ruff format --check .
+        run: uv run ruff format --check .
 
       - name: Auditar dependências
-        run: pip-audit
+        run: uv run pip-audit --skip-editable
 
       - name: Rodar testes unitários
-        run: pytest tests/unit --no-cov
+        run: uv run pytest tests/unit --no-cov
 
   # Suíte completa contra a restful-booker. Roda também os unitários de novo
   # (custam milissegundos) para que o relatório e a cobertura continuem
@@ -68,19 +73,19 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v7
 
-      - name: Configurar Python
-        uses: actions/setup-python@v7
+      - name: Instalar uv e Python
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          enable-cache: true
 
+      # --locked: instala exatamente o que está no uv.lock e falha se o lock
+      # estiver desatualizado em relação ao pyproject.toml.
       - name: Instalar dependências
-        run: |
-          pip install --upgrade pip
-          pip install -e ".[dev]"
+        run: uv sync --locked --extra dev
 
       - name: Rodar testes
-        run: pytest
+        run: uv run pytest
 
       # Cobertura, relatório HTML e Pages só precisam de uma versão do Python
       # gerando o artifact — rodar pras duas duplicaria o upload à toa.
