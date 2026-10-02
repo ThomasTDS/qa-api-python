@@ -1,9 +1,11 @@
+from datetime import date
+
 import pytest
 from pydantic import ValidationError
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from conftest import Context
-from models.booking import AuthResponse, Booking, BookingDates, BookingId, CreateBookingResponse
+from models.booking import AuthResponse, Booking, BookingDates, BookingIdList, CreateBookingResponse
 
 scenarios("../features")
 
@@ -14,7 +16,7 @@ def _default_booking() -> Booking:
         lastname="Ciclano",
         totalprice=150,
         depositpaid=True,
-        bookingdates=BookingDates(checkin="2026-01-01", checkout="2026-01-05"),
+        bookingdates=BookingDates(checkin=date(2026, 1, 1), checkout=date(2026, 1, 5)),
         additionalneeds="Breakfast",
     )
 
@@ -44,7 +46,7 @@ def solicita_um_token(context: Context, username: str, password: str) -> None:
 def deve_receber_um_token_valido(context: Context) -> None:
     assert context.last_response is not None
     assert context.last_response.status_code == 200
-    body = AuthResponse.model_validate(context.last_response.json())
+    body = AuthResponse.model_validate_json(context.last_response.text)
     assert body.token
 
 
@@ -60,7 +62,7 @@ def resposta_indica_credenciais_invalidas(context: Context) -> None:
 def existe_um_booking_criado(context: Context) -> None:
     context.booking_data = _default_booking()
     response = context.booking_client.create_booking(context.booking_data)
-    body = CreateBookingResponse.model_validate(response.json())
+    body = CreateBookingResponse.model_validate_json(response.text)
     context.booking_id = body.bookingid
 
 
@@ -79,7 +81,7 @@ def booking_deve_ser_criado_com_sucesso(context: Context) -> None:
 @then("o id do booking criado deve ser retornado")
 def id_do_booking_criado_deve_ser_retornado(context: Context) -> None:
     assert context.last_response is not None
-    body = CreateBookingResponse.model_validate(context.last_response.json())
+    body = CreateBookingResponse.model_validate_json(context.last_response.text)
     assert body.bookingid > 0
     context.booking_id = body.bookingid
 
@@ -121,7 +123,7 @@ def resposta_nao_corresponde_ao_schema(context: Context) -> None:
     assert context.last_response is not None
     assert context.last_response.status_code == 200
     with pytest.raises(ValidationError):
-        CreateBookingResponse.model_validate(context.last_response.json())
+        CreateBookingResponse.model_validate_json(context.last_response.text)
 
 
 @when("ele cria um booking com depositpaid em formato inválido")
@@ -200,7 +202,7 @@ def busca_o_booking_pelo_id_informado(context: Context, booking_id: str) -> None
 def dados_correspondem_ao_booking_criado(context: Context) -> None:
     assert context.last_response is not None
     assert context.last_response.status_code == 200
-    body = Booking.model_validate(context.last_response.json())
+    body = Booking.model_validate_json(context.last_response.text)
     assert body == context.booking_data
 
 
@@ -223,7 +225,7 @@ def busca_bookings_filtrando_pelo_booking_criado(context: Context) -> None:
 def id_do_booking_criado_esta_entre_os_resultados(context: Context) -> None:
     assert context.last_response is not None
     assert context.last_response.status_code == 200
-    body = [BookingId.model_validate(item) for item in context.last_response.json()]
+    body = BookingIdList.validate_json(context.last_response.text)
     assert any(b.bookingid == context.booking_id for b in body)
 
 
@@ -239,7 +241,7 @@ def busca_bookings_filtrando_por_dados_inexistentes(context: Context) -> None:
 def id_do_booking_criado_nao_esta_entre_os_resultados(context: Context) -> None:
     assert context.last_response is not None
     assert context.last_response.status_code == 200
-    body = [BookingId.model_validate(item) for item in context.last_response.json()]
+    body = BookingIdList.validate_json(context.last_response.text)
     assert not any(b.bookingid == context.booking_id for b in body)
 
 
@@ -292,7 +294,7 @@ def tenta_atualizar_parcialmente_o_sobrenome(context: Context, lastname: str) ->
 @then(parsers.parse('o sobrenome do booking deve ser "{lastname}"'))
 def sobrenome_do_booking_deve_ser(context: Context, lastname: str) -> None:
     assert context.last_response is not None
-    body = Booking.model_validate(context.last_response.json())
+    body = Booking.model_validate_json(context.last_response.text)
     assert body.lastname == lastname
 
 
@@ -312,7 +314,7 @@ def resposta_indica_requisicao_invalida(context: Context) -> None:
 def atualiza_o_booking_com_totalprice_invalido(context: Context) -> None:
     assert context.booking_data is not None
     assert context.booking_id is not None
-    payload = {**context.booking_data.model_dump(exclude_none=True), "totalprice": "nao-e-numero"}
+    payload = {**context.booking_data.model_dump(mode="json", exclude_none=True), "totalprice": "nao-e-numero"}
     context.last_response = context.booking_client.update_booking_raw(context.booking_id, payload, context.token or "")
 
 
@@ -326,7 +328,7 @@ def totalprice_do_booking_atualizado_deve_ser_nulo(context: Context) -> None:
 def atualiza_o_booking_sem_bookingdates(context: Context) -> None:
     assert context.booking_data is not None
     assert context.booking_id is not None
-    payload = context.booking_data.model_dump(exclude_none=True)
+    payload = context.booking_data.model_dump(mode="json", exclude_none=True)
     del payload["bookingdates"]
     context.last_response = context.booking_client.update_booking_raw(context.booking_id, payload, context.token or "")
 
@@ -354,7 +356,7 @@ def atualiza_parcialmente_o_booking_com_corpo_vazio(context: Context) -> None:
 @then("os dados do booking não devem ter sido alterados")
 def dados_do_booking_nao_devem_ter_sido_alterados(context: Context) -> None:
     assert context.last_response is not None
-    body = Booking.model_validate(context.last_response.json())
+    body = Booking.model_validate_json(context.last_response.text)
     assert body == context.booking_data
 
 

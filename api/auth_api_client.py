@@ -10,5 +10,5 @@ class AuthApiClient(BaseApiClient):
 
     def get_valid_token(self) -> str:
         response = self.create_token("admin", "password123")
-        body = AuthResponse.model_validate(response.json())
+        body = AuthResponse.model_validate_json(response.text)
         return body.token

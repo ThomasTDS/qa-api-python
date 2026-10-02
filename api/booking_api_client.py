@@ -27,7 +27,7 @@ class BookingApiClient(BaseApiClient):
         return self._request("GET", f"/booking/{booking_id}")
 
     def create_booking(self, booking: Booking) -> requests.Response:
-        return self._request("POST", "/booking", json=booking.model_dump(exclude_none=True))
+        return self._request("POST", "/booking", json=booking.model_dump(mode="json", exclude_none=True))
 
     # Recebe um dict cru (sem passar pela validação do Pydantic) para testes
     # negativos que precisam mandar um payload propositalmente inválido.
@@ -38,7 +38,7 @@ class BookingApiClient(BaseApiClient):
         return self._request(
             "PUT",
             f"/booking/{booking_id}",
-            json=booking.model_dump(exclude_none=True),
+            json=booking.model_dump(mode="json", exclude_none=True),
             cookies={"token": token},
         )
 
