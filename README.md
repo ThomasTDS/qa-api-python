@@ -5,6 +5,8 @@
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue)](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml)
 [![License](https://img.shields.io/github/license/ThomasTDS/qa-api-python)](LICENSE)
 
+**Português** | [English](README.en.md)
+
 ## Descrição
 
 Este repositório contém testes automatizados da API pública **[restful-booker](https://restful-booker.herokuapp.com)** utilizando **requests** (chamadas HTTP puras, sem navegador), **pytest-bdd (BDD/Gherkin)** e uma camada de **API Clients** que cumpre, para testes de API, o mesmo papel que o Page Object Model cumpre em testes de UI: encapsular as chamadas HTTP e esconder detalhes de endpoint/headers dos steps e dos cenários.
@@ -47,7 +49,8 @@ qa-api-python/
 ├── .pre-commit-config.yaml  # Hooks de pre-commit (ruff, mypy)
 ├── codecov.yml              # Metas de cobertura verificadas pelo Codecov nos PRs
 ├── LICENSE
-└── README.md                # Este arquivo
+├── README.md                # Este arquivo
+└── README.en.md             # Versão em inglês deste README
 ```
 
 ---
@@ -124,10 +127,10 @@ Por padrão os testes apontam para `https://restful-booker.herokuapp.com` e se a
 
 ```
 # PowerShell
-$env:BASE_URL="http://localhost:3001"; $env:API_USERNAME="usuario"; $env:API_PASSWORD="senha"; pytest
+$env:BASE_URL="http://localhost:3001"; $env:API_USERNAME="qa"; $env:API_PASSWORD="qa123"; pytest
 
 # bash
-BASE_URL=http://localhost:3001 API_USERNAME=usuario API_PASSWORD=senha pytest
+BASE_URL=http://localhost:3001 API_USERNAME=qa API_PASSWORD=qa123 pytest
 ```
 
 ---
@@ -166,7 +169,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra a API pública. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.
 - Dependências atualizadas automaticamente pelo Dependabot (uv e GitHub Actions, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). PRs de patch/minor com CI verde são mergeados automaticamente ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
 - Auditoria de vulnerabilidades conhecidas nas dependências instaladas a cada execução do CI, via [`pip-audit`](https://github.com/pypa/pip-audit); encontrar uma vulnerabilidade quebra o build.
-- Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Cenário`. Os marcadores `TC-XXX` são registrados automaticamente a partir das tags dos `.feature`, o pytest roda com `--strict-markers` (uma tag com erro de digitação quebra a coleta), e o teste [tests/unit/test_traceability.py](tests/unit/test_traceability.py) garante que a matriz lista exatamente os TCs dos `.feature`, com links para a linha certa de cada cenário e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
+- Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Cenário` e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Os marcadores `TC-XXX` são registrados automaticamente a partir das tags dos `.feature`, o pytest roda com `--strict-markers` (uma tag com erro de digitação quebra a coleta), e o teste [tests/unit/test_traceability.py](tests/unit/test_traceability.py) garante que a matriz lista exatamente os TCs dos `.feature`, com links para a linha certa de cada cenário. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
 
 ---
 
@@ -175,8 +178,8 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 A branch `master` é protegida: toda mudança passa por Pull Request, e o merge só é liberado depois que os checks de CI (`unit (3.12)`, `unit (3.13)`, `integration (3.12)` e `integration (3.13)`) e de cobertura do código novo no Codecov (`codecov/patch`) passarem. Fluxo padrão:
 
 ```
-git checkout -b minha-branch
+git checkout -b <branch>
 # editar, rodar pytest localmente
-git push -u origin minha-branch
+git push -u origin <branch>
 # abrir PR no GitHub, aguardar os checks passarem, fazer merge
 ```
