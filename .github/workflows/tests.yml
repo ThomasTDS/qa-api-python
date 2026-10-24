@@ -60,7 +60,12 @@ jobs:
   # Suíte completa contra a restful-booker. Roda também os unitários de novo
   # (custam milissegundos) para que o relatório e a cobertura continuem
   # cobrindo o projeto inteiro. Uma falha aqui com o job unit verde indica
-  # problema na API pública ou num cenário, não no código dos clients.
+  # problema na API ou num cenário, não no código dos clients.
+  #
+  # PRs e pushes usam uma restful-booker local (docker-compose.yml), com a
+  # versão fixada: o resultado não depende do Heroku estar no ar nem de dados
+  # alterados por terceiros. A execução diária usa a API pública, para
+  # perceber quando o comportamento dela mudar.
   integration:
     needs: unit
     runs-on: ubuntu-latest
@@ -68,6 +73,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.12', '3.13']
+    env:
+      BASE_URL: ${{ github.event_name == 'schedule' && 'https://restful-booker.herokuapp.com' || 'http://localhost:3001' }}
 
     steps:
       - name: Checkout código
@@ -83,6 +90,23 @@ jobs:
       # estiver desatualizado em relação ao pyproject.toml.
       - name: Instalar dependências
         run: uv sync --locked --extra dev
+
+      # O container leva alguns segundos para começar a responder; o /ping
+      # devolve 201 quando a API está pronta.
+      - name: Subir a restful-booker local
+        if: github.event_name != 'schedule'
+        run: |
+          docker compose up -d
+          for i in $(seq 1 30); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' "$BASE_URL/ping")" = "201" ]; then
+              echo "API pronta em $BASE_URL"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "A API local não respondeu em 60 segundos"
+          docker compose logs
+          exit 1
 
       - name: Rodar testes
         run: uv run pytest

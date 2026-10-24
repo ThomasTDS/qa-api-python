@@ -1,0 +1,10 @@
+# restful-booker local, para rodar os testes de integração sem depender da API
+# pública. A imagem é fixada pelo digest (a imagem só publica a tag "latest"),
+# para que todo mundo teste contra a mesma versão; o Dependabot abre um PR
+# quando sair uma nova. Os dados ficam em memória e voltam ao estado inicial
+# a cada "docker compose up".
+services:
+  restful-booker:
+    image: mwinteringham/restfulbooker:latest@sha256:a87ae093264caf64cad2557256921cbdb1fec466d6356b5e140e3f060b904f04
+    ports:
+      - '3001:3001'
