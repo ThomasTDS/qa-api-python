@@ -46,6 +46,7 @@ qa-api-python/
 ├── conftest.py              # Fixtures (contexto por cenário) e captura de evidência de falha
 ├── pyproject.toml           # Dependências e configuração (pytest, ruff, mypy)
 ├── uv.lock                  # Versões exatas de todas as dependências (gerado pelo uv)
+├── docker-compose.yml       # restful-booker local, com a versão fixada, usada no CI e para rodar os testes sem a API pública
 ├── .pre-commit-config.yaml  # Hooks de pre-commit (ruff, mypy)
 ├── codecov.yml              # Metas de cobertura verificadas pelo Codecov nos PRs
 ├── LICENSE
@@ -115,6 +116,19 @@ O Codecov também bloqueia o merge do PR (configuração em `codecov.yml`) se o 
 
 Um hook de pre-commit (framework `pre-commit`, instalado via `pre-commit install` após o `uv sync`) roda `ruff --fix` e `ruff format` nos arquivos staged, e também `mypy .` no projeto inteiro, antes de cada commit — então a maioria dos problemas de lint, formatação ou tipo já é pega localmente antes de chegar no CI.
 
+### Rodar contra a API local (Docker)
+
+Os testes de integração podem rodar contra uma restful-booker local, na mesma versão usada no CI (fixada pelo digest da imagem no `docker-compose.yml`). Assim o resultado não depende da API pública estar no ar nem de dados alterados por outras pessoas. Com o Docker em execução:
+
+```
+docker compose up -d                                 # sobe a API em http://localhost:3001
+$env:BASE_URL="http://localhost:3001"; pytest        # PowerShell
+BASE_URL=http://localhost:3001 pytest                # bash
+docker compose down                                  # remove o container
+```
+
+Os dados ficam em memória e voltam ao estado inicial a cada `docker compose up`.
+
 ### Rodar contra outro ambiente
 
 Por padrão os testes apontam para `https://restful-booker.herokuapp.com` e se autenticam com as credenciais públicas da documentação da API (`admin` / `password123`). Para rodar contra outro ambiente (ex: uma instância local ou de staging), defina as variáveis de ambiente:
@@ -166,8 +180,8 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Limpeza automática: a fixture `context` remove o booking criado no cenário (via token próprio de limpeza) ao final de cada teste, evitando acúmulo de dados na API pública. Se a remoção falhar por erro de rede ou de autenticação, o pytest mostra um aviso com o id do booking que ficou para trás, sem mudar o resultado do teste.
 - Dados de teste únicos: cada booking criado leva um sufixo aleatório no sobrenome (ex: `Ciclano-3f9a1c`). Como a API pública é compartilhada, inclusive pelas execuções paralelas do CI, a busca por nome encontra só o booking do próprio teste.
 - Retry automático só para falhas de rede (`pytest-rerunfailures`, com `--reruns 1` e `only_rerun` no `pyproject.toml`): um teste que falha por erro de conexão ou timeout roda uma segunda vez, amortecendo a instabilidade da API pública de demonstração. Falhas de asserção ou de schema nunca são repetidas, para que um bug intermitente não passe na segunda tentativa.
-- Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra a API pública. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)) para detectar quebras causadas pela própria API pública, com o relatório HTML publicado como artifact do workflow.
-- Dependências atualizadas automaticamente pelo Dependabot (uv e GitHub Actions, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). As atualizações de patch e minor chegam agrupadas, um PR por semana para cada ecossistema, e são mergeadas automaticamente quando o CI passa ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
+- Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra uma restful-booker local, num container com a versão fixada no `docker-compose.yml`. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)). A execução diária roda contra a API pública, para detectar quando o comportamento dela mudar, com o relatório HTML publicado como artifact do workflow.
+- Dependências atualizadas automaticamente pelo Dependabot (uv, GitHub Actions e a imagem Docker da API local, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). As atualizações de patch e minor chegam agrupadas, um PR por semana para cada ecossistema, e são mergeadas automaticamente quando o CI passa ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
 - Auditoria de vulnerabilidades conhecidas nas dependências instaladas a cada execução do CI, via [`pip-audit`](https://github.com/pypa/pip-audit); encontrar uma vulnerabilidade quebra o build.
 - Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Cenário` e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Os marcadores `TC-XXX` são registrados automaticamente a partir das tags dos `.feature`, o pytest roda com `--strict-markers` (uma tag com erro de digitação quebra a coleta), e o teste [tests/unit/test_traceability.py](tests/unit/test_traceability.py) garante que a matriz lista exatamente os TCs dos `.feature`, com links para a linha certa de cada cenário. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).
 

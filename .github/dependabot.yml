@@ -18,3 +18,12 @@ updates:
     groups:
       actions:
         update-types: ['minor', 'patch']
+
+  # Imagem da restful-booker local (docker-compose.yml). Ela só publica a tag
+  # "latest", então a atualização é uma troca de digest, sem versão semver:
+  # o auto-merge não se aplica e o PR passa por revisão manual, o que é o
+  # desejado, já que uma versão nova da API pode mudar o comportamento testado.
+  - package-ecosystem: 'docker-compose'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
