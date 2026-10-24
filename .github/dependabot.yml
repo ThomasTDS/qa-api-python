@@ -1,11 +1,20 @@
 version: 2
 updates:
+  # Patch e minor de cada ecossistema chegam juntos num PR só por semana, o
+  # que reduz as execuções do CI. Majors continuam em PRs separados, para
+  # revisão manual.
   - package-ecosystem: 'uv'
     directory: '/'
     schedule:
       interval: 'weekly'
+    groups:
+      dependencias:
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
       interval: 'weekly'
+    groups:
+      actions:
+        update-types: ['minor', 'patch']
