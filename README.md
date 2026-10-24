@@ -155,17 +155,18 @@ BASE_URL=http://localhost:3001 API_USERNAME=qa API_PASSWORD=qa123 pytest
 
 ### API testada
 
-| Método | Rota           | Função                                             |
-| ------ | -------------- | --------------------------------------------------- |
-| POST   | `/auth`        | Gera token de autenticação                         |
-| GET    | `/booking`     | Lista IDs de bookings (aceita filtros)             |
-| GET    | `/booking/:id` | Busca um booking específico                        |
-| POST   | `/booking`     | Cria um booking                                    |
-| PUT    | `/booking/:id` | Atualiza um booking (todos os campos obrigatórios) |
-| PATCH  | `/booking/:id` | Atualiza parcialmente um booking                   |
-| DELETE | `/booking/:id` | Remove um booking                                  |
+| Método | Rota           | Função                                                                     |
+| ------ | -------------- | -------------------------------------------------------------------------- |
+| GET    | `/ping`        | Health check (responde 201 quando a API está no ar)                        |
+| POST   | `/auth`        | Gera token de autenticação                                                 |
+| GET    | `/booking`     | Lista IDs de bookings (filtros por nome e por datas de checkin e checkout) |
+| GET    | `/booking/:id` | Busca um booking específico                                                |
+| POST   | `/booking`     | Cria um booking                                                            |
+| PUT    | `/booking/:id` | Atualiza um booking (todos os campos obrigatórios)                         |
+| PATCH  | `/booking/:id` | Atualiza parcialmente um booking                                           |
+| DELETE | `/booking/:id` | Remove um booking                                                          |
 
-Autenticação: `POST /auth` com `{ "username": "admin", "password": "password123" }` (credenciais públicas da documentação da API, configuráveis por `API_USERNAME` e `API_PASSWORD`) retorna um token, enviado nas chamadas de `PUT`, `PATCH` e `DELETE` via cookie `token=<valor>`.
+Autenticação: `POST /auth` com `{ "username": "admin", "password": "password123" }` (credenciais públicas da documentação da API, configuráveis por `API_USERNAME` e `API_PASSWORD`) retorna um token, enviado nas chamadas de `PUT`, `PATCH` e `DELETE` via cookie `token=<valor>`. Essas chamadas também aceitam as mesmas credenciais por Basic auth (cabeçalho `Authorization`), e as duas formas são testadas.
 
 **Observação de segurança:** `POST /booking` (criação) **não exige autenticação** — qualquer pessoa consegue criar bookings sem token. Isso é uma falha de controle de acesso do próprio app de demonstração, e está coberta explicitamente em [features/create_booking.feature](features/create_booking.feature) como comportamento documentado, não como bug do teste.
 
@@ -178,7 +179,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Timeout em todas as chamadas HTTP: os dois clients herdam de `BaseApiClient`, que aplica 5 segundos de limite para conectar e 30 para receber a resposta. Sem isso, o `requests` pode esperar indefinidamente, e uma API travada deixaria o CI parado até o limite de execução do GitHub Actions.
 - Pirâmide de testes: além dos cenários de BDD (`steps/`), que são testes de integração reais contra a `restful-booker`, `tests/unit/` cobre `api/` e `models/` de forma isolada, com `requests-mock` simulando as respostas HTTP — sem rede, sem depender da API pública estar no ar.
 - Validação de schema com [Pydantic](https://docs.pydantic.dev/): as respostas da API são validadas em tempo de execução contra os modelos em `models/booking.py` (fonte única de verdade), não só tipadas por anotação — se a API mudar o formato de uma resposta, o teste falha com uma mensagem clara em vez de passar silenciosamente ou quebrar mais adiante. Os modelos usam o modo estrito do Pydantic, que não converte tipos por conta própria: um `totalprice` enviado como texto (`"150"`), um `depositpaid` como `"true"` ou uma data fora do formato `AAAA-MM-DD` reprovam a validação. Campos extras na resposta são ignorados, porque a API é de terceiros e um campo a mais não é defeito.
-- Cobertura de autenticação, CRUD completo, PUT vs. PATCH, e casos de acesso não autorizado (403).
+- Cobertura de health check, autenticação (token e Basic auth), CRUD completo, filtros por nome e por data, PUT vs. PATCH, e casos de acesso não autorizado (403).
 - Relatório HTML automatizado a cada execução (`reports/report.html`, via `pytest-html`), com a versão da `master` publicada em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/) via GitHub Pages.
 - Cobertura de código (`pytest-cov`) de `api/` e `models/` em cada execução, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - Limpeza automática: a fixture `context` remove o booking criado no cenário (via token próprio de limpeza) ao final de cada teste, evitando acúmulo de dados na API pública. Se a remoção falhar por erro de rede ou de autenticação, o pytest mostra um aviso com o id do booking que ficou para trás, sem mudar o resultado do teste.

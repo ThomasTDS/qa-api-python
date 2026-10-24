@@ -39,6 +39,15 @@ Legenda:
 | TC-023 | Atualização  | Atualizar parcialmente com lastname em formato inválido | Negativo  | Média      | Automatizado | [update_booking.feature:79](../features/update_booking.feature#L79)   |
 | TC-024 | Atualização  | Atualizar parcialmente com corpo vazio não altera nada  | Funcional | Baixa      | Automatizado | [update_booking.feature:89](../features/update_booking.feature#L89)   |
 | TC-025 | Atualização  | Tentar atualizar (PUT/PATCH) um booking inexistente     | Negativo  | Média      | Automatizado | [update_booking.feature:102](../features/update_booking.feature#L102) |
+| TC-026 | Saúde        | Verificar que a API está no ar (health check)           | Funcional | Média      | Automatizado | [health.feature:8](../features/health.feature#L8)                     |
+| TC-027 | Consulta     | Buscar bookings com checkin a partir de data anterior   | Funcional | Média      | Automatizado | [get_booking.feature:24](../features/get_booking.feature#L24)         |
+| TC-028 | Consulta     | Buscar bookings com checkin na mesma data (bug)         | Funcional | Média      | Automatizado | [get_booking.feature:35](../features/get_booking.feature#L35)         |
+| TC-029 | Consulta     | Buscar bookings com checkout posterior (bug)            | Funcional | Média      | Automatizado | [get_booking.feature:45](../features/get_booking.feature#L45)         |
+| TC-030 | Consulta     | Tentar buscar bookings com data inválida no filtro      | Negativo  | Média      | Automatizado | [get_booking.feature:54](../features/get_booking.feature#L54)         |
+| TC-031 | Atualização  | Atualizar booking com Basic auth (PUT)                  | Funcional | Alta       | Automatizado | [update_booking.feature:116](../features/update_booking.feature#L116) |
+| TC-032 | Atualização  | Atualizar parcialmente com Basic auth (PATCH)           | Funcional | Média      | Automatizado | [update_booking.feature:123](../features/update_booking.feature#L123) |
+| TC-033 | Remoção      | Remover booking com Basic auth                          | Funcional | Alta       | Automatizado | [delete_booking.feature:28](../features/delete_booking.feature#L28)   |
+| TC-034 | Atualização  | Tentar atualizar booking com Basic auth inválido        | Negativo  | Alta       | Automatizado | [update_booking.feature:131](../features/update_booking.feature#L131) |
 
 `BookingApiClient.get_booking_ids` também aceita filtro por `checkin`/`checkout`, mas o TC-006 cobre só `firstname`/`lastname`: o filtro por data na API pública de demonstração é conhecido por ser instável, e testá-lo arriscaria um teste flaky em vez de validar um comportamento real.
 

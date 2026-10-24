@@ -117,3 +117,60 @@ def test_delete_booking_sends_the_auth_token_as_cookie(requests_mock: Mocker) ->
 
     assert requests_mock.last_request is not None
     assert requests_mock.last_request.headers["Cookie"] == "token=tok123"
+
+
+BASIC_AUTH = ("usuario", "senha")
+# "usuario:senha" em base64, como o requests monta o cabeçalho de Basic auth.
+EXPECTED_AUTHORIZATION = "Basic dXN1YXJpbzpzZW5oYQ=="
+
+
+def test_update_booking_with_basic_auth_sends_the_authorization_header_and_no_cookie(requests_mock: Mocker) -> None:
+    requests_mock.put(f"{BASE_URL}/booking/1", json={})
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.update_booking(1, _booking(), token="", basic_auth=BASIC_AUTH)
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.headers["Authorization"] == EXPECTED_AUTHORIZATION
+    assert "Cookie" not in requests_mock.last_request.headers
+
+
+def test_update_booking_raw_with_basic_auth_sends_the_authorization_header(requests_mock: Mocker) -> None:
+    requests_mock.put(f"{BASE_URL}/booking/1", json={})
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.update_booking_raw(1, {}, token="", basic_auth=BASIC_AUTH)
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.headers["Authorization"] == EXPECTED_AUTHORIZATION
+
+
+def test_partial_update_booking_with_basic_auth_sends_the_authorization_header(requests_mock: Mocker) -> None:
+    requests_mock.patch(f"{BASE_URL}/booking/1", json={})
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.partial_update_booking(1, {"firstname": "Jane"}, token="", basic_auth=BASIC_AUTH)
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.headers["Authorization"] == EXPECTED_AUTHORIZATION
+
+
+def test_delete_booking_with_basic_auth_sends_the_authorization_header(requests_mock: Mocker) -> None:
+    requests_mock.delete(f"{BASE_URL}/booking/1")
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.delete_booking(1, token="", basic_auth=BASIC_AUTH)
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.headers["Authorization"] == EXPECTED_AUTHORIZATION
+
+
+def test_basic_auth_together_with_a_token_sends_both(requests_mock: Mocker) -> None:
+    requests_mock.delete(f"{BASE_URL}/booking/1")
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.delete_booking(1, token="tok123", basic_auth=BASIC_AUTH)
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.headers["Authorization"] == EXPECTED_AUTHORIZATION
+    assert requests_mock.last_request.headers["Cookie"] == "token=tok123"

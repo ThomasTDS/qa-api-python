@@ -22,6 +22,17 @@ def com_token_de_autenticacao_invalido(context: Context) -> None:
     context.token = "token-invalido-qualquer"
 
 
+# Basic auth é a alternativa da API ao token no cookie, nas operações de escrita.
+@given("que o usuário possui credenciais de Basic auth válidas")
+def com_basic_auth_valido(context: Context) -> None:
+    context.basic_auth = (context.auth_client.username, context.auth_client.password)
+
+
+@given("que o usuário possui credenciais de Basic auth inválidas")
+def com_basic_auth_invalido(context: Context) -> None:
+    context.basic_auth = (context.auth_client.username, "senha-errada")
+
+
 @given("que existe um booking criado")
 def existe_um_booking_criado(context: Context) -> None:
     context.booking_data = default_booking()
@@ -38,3 +49,8 @@ def resposta_indica_acesso_nao_autorizado(context: Context) -> None:
 @then("a resposta deve indicar que o método não é permitido")
 def resposta_indica_metodo_nao_permitido(context: Context) -> None:
     assert context.response.status_code == 405
+
+
+@then("a resposta deve indicar um erro interno do servidor")
+def resposta_indica_erro_interno_do_servidor(context: Context) -> None:
+    assert context.response.status_code == 500

@@ -23,3 +23,10 @@ Funcionalidade: Remoção de booking
     Dado que o usuário possui um token de autenticação válido
     Quando o usuário tenta remover o booking pelo id "999999999"
     Então a resposta deve indicar que o método não é permitido
+
+  @TC-033
+  Cenário: Remover booking com Basic auth
+    Dado que existe um booking criado
+    E que o usuário possui credenciais de Basic auth válidas
+    Quando o usuário remove o booking
+    Então o booking deve ser removido com sucesso
