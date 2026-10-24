@@ -12,9 +12,10 @@ from pydantic import ValidationError
 
 from api.auth_api_client import AuthApiClient
 from api.booking_api_client import BookingApiClient
+from api.health_api_client import HealthApiClient
 from models.booking import Booking
 
-# Steps compartilhados entre features (tokens, booking criado, 403 e 405).
+# Steps compartilhados entre features (token, Basic auth, booking criado, 403, 405 e 500).
 pytest_plugins = ["steps.common_steps"]
 
 BASE_URL = os.environ.get("BASE_URL", "https://restful-booker.herokuapp.com")
@@ -51,7 +52,10 @@ class Context:
         self.session = session
         self.auth_client = AuthApiClient(session, BASE_URL, API_USERNAME, API_PASSWORD)
         self.booking_client = BookingApiClient(session, BASE_URL)
+        self.health_client = HealthApiClient(session, BASE_URL)
         self.token: str | None = None
+        # Credenciais de Basic auth, alternativa ao token no cookie.
+        self.basic_auth: tuple[str, str] | None = None
         self.booking_id: int | None = None
         self.booking_data: Booking | None = None
         self.last_response: requests.Response | None = None

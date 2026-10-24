@@ -108,3 +108,28 @@ Funcionalidade: Atualização de booking (PUT e PATCH)
       | verbo                  |
       | atualizar              |
       | atualizar parcialmente |
+
+  # A API aceita Basic auth (cabeçalho Authorization) como alternativa ao
+  # token no cookie, nas operações de escrita. Os dois mecanismos precisam
+  # funcionar, e o inválido precisa ser recusado.
+  @TC-031
+  Cenário: Atualizar booking com Basic auth
+    Dado que existe um booking criado
+    E que o usuário possui credenciais de Basic auth válidas
+    Quando o usuário atualiza o booking com novos dados
+    Então o booking deve ser atualizado com sucesso
+
+  @TC-032
+  Cenário: Atualizar parcialmente o booking com Basic auth
+    Dado que existe um booking criado
+    E que o usuário possui credenciais de Basic auth válidas
+    Quando o usuário atualiza parcialmente o booking alterando o sobrenome para "Basic"
+    Então o booking deve ser atualizado com sucesso
+    E o sobrenome do booking deve ser "Basic"
+
+  @TC-034
+  Cenário: Tentar atualizar booking com Basic auth inválido
+    Dado que existe um booking criado
+    E que o usuário possui credenciais de Basic auth inválidas
+    Quando o usuário tenta atualizar o booking com novos dados
+    Então a resposta deve indicar acesso não autorizado

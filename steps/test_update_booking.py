@@ -12,7 +12,9 @@ def atualiza_o_booking_com_novos_dados(context: Context) -> None:
     assert context.booking_data is not None
     assert context.booking_id is not None
     updated = context.booking_data.model_copy(update={"firstname": "Atualizado", "totalprice": 200})
-    context.last_response = context.booking_client.update_booking(context.booking_id, updated, context.token_or_empty)
+    context.last_response = context.booking_client.update_booking(
+        context.booking_id, updated, context.token_or_empty, basic_auth=context.basic_auth
+    )
     context.booking_data = updated
 
 
@@ -21,7 +23,9 @@ def tenta_atualizar_o_booking_com_novos_dados(context: Context) -> None:
     assert context.booking_data is not None
     assert context.booking_id is not None
     updated = context.booking_data.model_copy(update={"firstname": "NaoDeveriaFuncionar"})
-    context.last_response = context.booking_client.update_booking(context.booking_id, updated, context.token_or_empty)
+    context.last_response = context.booking_client.update_booking(
+        context.booking_id, updated, context.token_or_empty, basic_auth=context.basic_auth
+    )
 
 
 @then("o booking deve ser atualizado com sucesso")
@@ -34,7 +38,7 @@ def booking_deve_ser_atualizado_com_sucesso(context: Context) -> None:
 def atualiza_parcialmente_o_sobrenome(context: Context, lastname: str) -> None:
     assert context.booking_id is not None
     context.last_response = context.booking_client.partial_update_booking(
-        context.booking_id, {"lastname": lastname}, context.token_or_empty
+        context.booking_id, {"lastname": lastname}, context.token_or_empty, basic_auth=context.basic_auth
     )
 
 
@@ -47,7 +51,9 @@ def sobrenome_do_booking_deve_ser(context: Context, lastname: str) -> None:
 @when("o usuário atualiza o booking com corpo vazio")
 def atualiza_o_booking_com_corpo_vazio(context: Context) -> None:
     assert context.booking_id is not None
-    context.last_response = context.booking_client.update_booking_raw(context.booking_id, {}, context.token_or_empty)
+    context.last_response = context.booking_client.update_booking_raw(
+        context.booking_id, {}, context.token_or_empty, basic_auth=context.basic_auth
+    )
 
 
 @then("a resposta deve indicar requisição inválida")
@@ -60,7 +66,7 @@ def atualiza_o_booking_com_totalprice_invalido(context: Context) -> None:
     assert context.booking_id is not None
     payload = booking_payload(totalprice="nao-e-numero")
     context.last_response = context.booking_client.update_booking_raw(
-        context.booking_id, payload, context.token_or_empty
+        context.booking_id, payload, context.token_or_empty, basic_auth=context.basic_auth
     )
 
 
@@ -74,7 +80,7 @@ def atualiza_o_booking_sem_bookingdates(context: Context) -> None:
     assert context.booking_id is not None
     payload = booking_payload(without="bookingdates")
     context.last_response = context.booking_client.update_booking_raw(
-        context.booking_id, payload, context.token_or_empty
+        context.booking_id, payload, context.token_or_empty, basic_auth=context.basic_auth
     )
 
 
@@ -82,7 +88,7 @@ def atualiza_o_booking_sem_bookingdates(context: Context) -> None:
 def atualiza_parcialmente_o_booking_com_lastname_invalido(context: Context) -> None:
     assert context.booking_id is not None
     context.last_response = context.booking_client.partial_update_booking(
-        context.booking_id, {"lastname": 12345}, context.token_or_empty
+        context.booking_id, {"lastname": 12345}, context.token_or_empty, basic_auth=context.basic_auth
     )
 
 
@@ -95,7 +101,7 @@ def lastname_do_booking_atualizado_deve_ser_o_valor_numerico(context: Context) -
 def atualiza_parcialmente_o_booking_com_corpo_vazio(context: Context) -> None:
     assert context.booking_id is not None
     context.last_response = context.booking_client.partial_update_booking(
-        context.booking_id, {}, context.token_or_empty
+        context.booking_id, {}, context.token_or_empty, basic_auth=context.basic_auth
     )
 
 
@@ -109,9 +115,9 @@ def dados_do_booking_nao_devem_ter_sido_alterados(context: Context) -> None:
 def tenta_verbo_um_booking_inexistente(context: Context, verbo: str) -> None:
     if verbo == "atualizar":
         context.last_response = context.booking_client.update_booking(
-            999999999, default_booking(), context.token_or_empty
+            999999999, default_booking(), context.token_or_empty, basic_auth=context.basic_auth
         )
     else:
         context.last_response = context.booking_client.partial_update_booking(
-            999999999, {"lastname": "Novo"}, context.token_or_empty
+            999999999, {"lastname": "Novo"}, context.token_or_empty, basic_auth=context.basic_auth
         )

@@ -13,8 +13,9 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 **In scope:**
 
 - Authentication: token creation with valid and invalid credentials.
-- Booking CRUD: creation, retrieval (by id and by name filter), full update (PUT), partial update (PATCH) and deletion.
-- Authorization: write calls with no token and with an invalid token.
+- Health check (`GET /ping`).
+- Booking CRUD: creation, retrieval (by id, by name filter and by checkin and checkout date filters), full update (PUT), partial update (PATCH) and deletion.
+- Authorization: both authentication methods for write operations (token in a cookie and Basic auth), and calls with no credentials or with invalid ones.
 - Input validation: missing fields, wrong types, negative values and dates in an invalid format.
 - Response contract: shape and type of every field.
 
@@ -23,8 +24,6 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 - Load and performance testing: the public API is shared, and generating load on it would hurt other people.
 - Web interface: restful-booker does not have one.
 - Penetration testing: the project records access control flaws that show up in the functional tests, but it does not attack the API.
-
-**Known gaps, planned:** the health check (`GET /ping`), the date filters (`checkin` and `checkout`) and authentication through `Authorization: Basic` have no scenarios yet.
 
 ## 3. Approach by level
 
@@ -40,7 +39,8 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 **Techniques applied:**
 
 - **Equivalence partitioning and invalid values:** for each field, one valid value and the relevant classes of invalid values (missing, wrong type, negative, wrong format).
-- **Negative authorization tests:** every write operation is tested with no token and with an invalid token.
+- **Boundary value analysis:** in the date filters, the booking is searched with a date before its checkin and with the same date, which is exactly where the faulty filter shows up (TC-027 and TC-028).
+- **Negative authorization tests:** every write operation is tested with no token and with an invalid token, and Basic auth with invalid credentials.
 - **Characterization tests:** when the API has a bug, the scenario records the current behavior and points to the issue that documents it. If the API gets fixed, the scenario fails, signaling that the issue can be closed.
 
 ## 4. Environments
@@ -93,12 +93,12 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 - The scenario that found the defect cites the issue in a comment in the `.feature` file and records the current behavior (section 3, characterization tests).
 - When a test fails in CI, the report shows the URL, status, headers and body of the last response, which already serves as evidence for the issue.
 
-So far, 7 defects are documented, all of them about input validation or status codes. For example: the API returns 500 when a required field is missing ([#8](https://github.com/ThomasTDS/qa-api-python/issues/8)) and accepts a negative price ([#21](https://github.com/ThomasTDS/qa-api-python/issues/21)).
+So far, 10 defects are documented: most about input validation or status codes, and two about logic in the date filters. When the cause can be confirmed in the [API source code](https://github.com/mwinteringham/restful-booker), the issue points to the line responsible. For example: the API returns 500 when a required field is missing ([#8](https://github.com/ThomasTDS/qa-api-python/issues/8)) and accepts a negative price ([#21](https://github.com/ThomasTDS/qa-api-python/issues/21)).
 
 ## 9. Metrics and reports
 
 - **Result of each run:** HTML report published on [GitHub Pages](https://thomastds.github.io/qa-api-python/) on every push to `master`, and kept as an artifact on every PR.
 - **Code coverage:** of `api/` and `models/`, tracked on [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
-- **Test cases:** 25 in the [matrix](test-cases.md), 8 functional and 17 negative, with 3 of critical priority.
-- **Defects found:** 7 open issues.
+- **Test cases:** 34 in the [matrix](test-cases.md), 15 functional and 19 negative, with 3 of critical priority.
+- **Defects found:** 10 open issues.
 - **Run time:** the full suite runs in under 1 second against the local API and in 25 to 40 seconds against the public one.

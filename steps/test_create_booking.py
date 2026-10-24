@@ -43,11 +43,6 @@ def tenta_criar_booking_sem_firstname(context: Context) -> None:
     _create_raw(context, booking_payload(without="firstname"))
 
 
-@then("a resposta deve indicar um erro interno do servidor")
-def resposta_indica_erro_interno_do_servidor(context: Context) -> None:
-    assert context.response.status_code == 500
-
-
 @when("o usuário cria um booking com totalprice em formato inválido")
 def cria_booking_com_totalprice_invalido(context: Context) -> None:
     _create_raw(context, booking_payload(totalprice="nao-e-numero"))

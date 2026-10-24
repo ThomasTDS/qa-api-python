@@ -13,8 +13,9 @@ Verificar o comportamento da API pública [restful-booker](https://restful-booke
 **Dentro do escopo:**
 
 - Autenticação: geração de token com credenciais válidas e inválidas.
-- CRUD de bookings: criação, consulta (por id e por filtro de nome), atualização completa (PUT), atualização parcial (PATCH) e remoção.
-- Autorização: chamadas de escrita sem token e com token inválido.
+- Health check (`GET /ping`).
+- CRUD de bookings: criação, consulta (por id, por filtro de nome e por filtro de datas de checkin e checkout), atualização completa (PUT), atualização parcial (PATCH) e remoção.
+- Autorização: as duas formas de autenticação das operações de escrita (token no cookie e Basic auth), e chamadas sem credencial ou com credencial inválida.
 - Validação de entrada: campos ausentes, tipos errados, valores negativos e datas em formato inválido.
 - Contrato das respostas: formato e tipo de cada campo.
 
@@ -23,8 +24,6 @@ Verificar o comportamento da API pública [restful-booker](https://restful-booke
 - Testes de carga e desempenho: a API pública é compartilhada, e gerar carga nela prejudicaria outras pessoas.
 - Interface web: a restful-booker não tem uma.
 - Testes de intrusão: o projeto registra falhas de controle de acesso que aparecem nos testes funcionais, mas não ataca a API.
-
-**Lacunas conhecidas, planejadas:** o health check (`GET /ping`), os filtros por data (`checkin` e `checkout`) e a autenticação por `Authorization: Basic` ainda não têm cenários.
 
 ## 3. Abordagem por nível
 
@@ -40,7 +39,8 @@ Verificar o comportamento da API pública [restful-booker](https://restful-booke
 **Técnicas aplicadas:**
 
 - **Partição de equivalência e valores inválidos:** para cada campo, um valor válido e as classes de valor inválido relevantes (ausente, tipo errado, negativo, formato errado).
-- **Testes negativos de autorização:** cada operação de escrita é testada sem token e com token inválido.
+- **Análise de valor-limite:** nos filtros por data, o booking é buscado com uma data anterior e com a mesma data do seu checkin, que é exatamente onde o filtro errado aparece (TC-027 e TC-028).
+- **Testes negativos de autorização:** cada operação de escrita é testada sem token e com token inválido, e o Basic auth, com credenciais inválidas.
 - **Testes de caracterização:** quando a API tem um bug, o cenário registra o comportamento atual e aponta para a issue que o documenta. Se a API for corrigida, o cenário falha, avisando que a issue pode ser fechada.
 
 ## 4. Ambientes
@@ -93,12 +93,12 @@ Os testes rodam em Python 3.12 e 3.13, com as dependências travadas no [uv.lock
 - O cenário que encontrou o defeito cita a issue num comentário no `.feature` e registra o comportamento atual (seção 3, testes de caracterização).
 - Quando um teste falha no CI, o relatório mostra a URL, o status, os headers e o corpo da última resposta, o que já serve de evidência para a issue.
 
-Até agora, 7 defeitos estão documentados, todos de validação de entrada ou de código de status. Por exemplo: a API devolve 500 quando falta um campo obrigatório ([#8](https://github.com/ThomasTDS/qa-api-python/issues/8)) e aceita um preço negativo ([#21](https://github.com/ThomasTDS/qa-api-python/issues/21)).
+Até agora, 10 defeitos estão documentados: a maioria de validação de entrada ou de código de status, e dois de lógica nos filtros por data. Quando a causa pode ser confirmada no [código-fonte da API](https://github.com/mwinteringham/restful-booker), a issue aponta a linha responsável. Por exemplo: a API devolve 500 quando falta um campo obrigatório ([#8](https://github.com/ThomasTDS/qa-api-python/issues/8)) e aceita um preço negativo ([#21](https://github.com/ThomasTDS/qa-api-python/issues/21)).
 
 ## 9. Métricas e relatórios
 
 - **Resultado de cada execução:** relatório HTML publicado no [GitHub Pages](https://thomastds.github.io/qa-api-python/) a cada push na `master`, e guardado como artifact em todo PR.
 - **Cobertura de código:** de `api/` e `models/`, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
-- **Casos de teste:** 25 na [matriz](test-cases.md), sendo 8 funcionais e 17 negativos, com 3 de prioridade crítica.
-- **Defeitos encontrados:** 7 issues abertas.
+- **Casos de teste:** 34 na [matriz](test-cases.md), sendo 15 funcionais e 19 negativos, com 3 de prioridade crítica.
+- **Defeitos encontrados:** 10 issues abertas.
 - **Tempo de execução:** a suíte completa roda em menos de 1 segundo contra a API local e em 25 a 40 segundos contra a pública.
