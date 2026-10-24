@@ -121,6 +121,11 @@ jobs:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: integration
     runs-on: ubuntu-latest
+    # Dois merges seguidos disparam duas publicações; sem isso, a segunda
+    # falha por encontrar a primeira em andamento. Com o grupo, ela espera.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write
