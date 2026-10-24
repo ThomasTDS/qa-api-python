@@ -13,6 +13,8 @@ Este repositório contém testes automatizados da API pública **[restful-booker
 
 O objetivo é praticar testes de API "de verdade": autenticação, CRUD completo, diferença entre PUT e PATCH, e validação de regras de autorização.
 
+O que é testado, como e por quê (escopo, abordagem por nível, ambientes, riscos e critérios de saída) está na [estratégia de testes](docs/test-strategy.md).
+
 ![Relatório de execução dos testes gerado pelo pytest-html](docs/assets/report-example.png)
 
 *Exemplo do relatório de execução (captura de tela). O relatório ao vivo e sempre atualizado fica em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/).*
@@ -32,7 +34,9 @@ qa-api-python/
 │   └── dependabot.yml      # Atualização semanal de dependências (uv e GitHub Actions)
 ├── docs/
 │   ├── assets/             # Imagens usadas no README
-│   └── test-cases.md       # Matriz de rastreabilidade dos test cases
+│   ├── test-cases.md       # Matriz de rastreabilidade dos test cases
+│   ├── test-strategy.md    # Estratégia de testes: escopo, abordagem, ambientes, riscos e critérios
+│   └── test-strategy.en.md # Versão em inglês da estratégia de testes
 ├── features/                # Cenários em Gherkin (.feature)
 ├── steps/                   # Steps do pytest-bdd (testes de integração, batem na API real)
 │   ├── test_<feature>.py    # Um módulo por arquivo .feature, com os steps exclusivos dele
