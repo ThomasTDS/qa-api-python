@@ -35,3 +35,12 @@ def test_get_valid_token_authenticates_with_the_configured_credentials(requests_
 
     assert requests_mock.last_request is not None
     assert requests_mock.last_request.json() == {"username": "usuario", "password": "senha"}
+
+
+def test_create_token_raw_sends_the_payload_as_is(requests_mock: Mocker) -> None:
+    requests_mock.post(f"{BASE_URL}/auth", json={"reason": "Bad credentials"})
+
+    _client().create_token_raw({"username": "usuario", "password": {"$ne": None}})
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.json() == {"username": "usuario", "password": {"$ne": None}}

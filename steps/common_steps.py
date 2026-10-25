@@ -1,6 +1,6 @@
 # Steps usados por mais de uma feature. Ficam disponíveis para todos os
 # módulos de teste via pytest_plugins, no conftest.py da raiz.
-from pytest_bdd import given, then
+from pytest_bdd import given, then, when
 
 from conftest import Context
 from models.booking import CreateBookingResponse
@@ -39,6 +39,11 @@ def existe_um_booking_criado(context: Context) -> None:
     response = context.booking_client.create_booking(context.booking_data)
     body = CreateBookingResponse.model_validate_json(response.text)
     context.booking_id = body.bookingid
+
+
+@when("o usuário consulta o health check da API")
+def consulta_o_health_check(context: Context) -> None:
+    context.last_response = context.health_client.ping()
 
 
 @then("a resposta deve indicar acesso não autorizado")

@@ -18,12 +18,13 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 - Authorization: both authentication methods for write operations (token in a cookie and Basic auth), and calls with no credentials or with invalid ones.
 - Input validation: missing fields, wrong types, negative values and dates in an invalid format.
 - Response contract: shape and type of every field.
+- Security, based on the OWASP API Security Top 10: NoSQL injection, security headers, internal details in error responses, mass assignment and token validity.
 
 **Out of scope:**
 
 - Load and performance testing: the public API is shared, and generating load on it would hurt other people.
 - Web interface: restful-booker does not have one.
-- Penetration testing: the project records access control flaws that show up in the functional tests, but it does not attack the API.
+- Full penetration testing, brute force and automated scanning: the project's security tests are light, with few requests each, so as not to harm the public API.
 
 ## 3. Approach by level
 
@@ -34,6 +35,7 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 | Integration (BDD) | [features/](../features/) and [steps/](../steps/) | The real behavior of the API, with Gherkin scenarios | The scenarios work as tests and as a readable specification at the same time |
 | Contract | [models/booking.py](../models/booking.py) | Each response validated against a Pydantic model in strict mode | A change in the shape or type of a response fails the test instead of going unnoticed |
 | Smoke | `@smoke` tag | The 5 most critical end-to-end flows | A quick check that the essentials work (`pytest -m smoke`) |
+| Security | [features/security.feature](../features/security.feature), `@seguranca` tag | Injection, headers, errors, mass assignment and session | Security flaws slip past functional tests; the protection scenarios make sure a defense does not disappear in a new version (`pytest -m seguranca`) |
 | Documentation | [tests/unit/test_traceability.py](../tests/unit/test_traceability.py) and [tests/unit/test_translation_sync.py](../tests/unit/test_translation_sync.py) | Whether the test case matrix matches the scenarios and whether the Portuguese and English versions of the documents have the same structure | Outdated documentation is a defect that no functional test catches |
 
 **Techniques applied:**
@@ -93,12 +95,12 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 - The scenario that found the defect cites the issue in a comment in the `.feature` file and records the current behavior (section 3, characterization tests).
 - When a scenario fails, the URL, status, headers and body of the last response are attached to the failing step in the Allure report, and also show up in the terminal and the CI log. That already serves as evidence for the issue.
 
-So far, 10 defects are documented: most about input validation or status codes, and two about logic in the date filters. When the cause can be confirmed in the [API source code](https://github.com/mwinteringham/restful-booker), the issue points to the line responsible. For example: the API returns 500 when a required field is missing ([#8](https://github.com/ThomasTDS/qa-api-python/issues/8)) and accepts a negative price ([#21](https://github.com/ThomasTDS/qa-api-python/issues/21)).
+So far, 13 defects are documented: most about input validation or status codes, two about logic in the date filters and three about security. When the cause can be confirmed in the [API source code](https://github.com/mwinteringham/restful-booker), the issue points to the line responsible. For example: the API returns 500 when a required field is missing ([#8](https://github.com/ThomasTDS/qa-api-python/issues/8)) and accepts a negative price ([#21](https://github.com/ThomasTDS/qa-api-python/issues/21)).
 
 ## 9. Metrics and reports
 
 - **Result of each run:** Allure report published on [GitHub Pages](https://thomastds.github.io/qa-api-python/) on every push to `master`, with the history across runs (trends and flaky tests), and kept as an artifact on every PR. Allure shows the BDD scenarios; the unit test results stay in the CI log.
 - **Code coverage:** of `api/` and `models/`, tracked on [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
-- **Test cases:** 34 in the [matrix](test-cases.md), 15 functional and 19 negative, with 3 of critical priority.
-- **Defects found:** 10 open issues.
+- **Test cases:** 41 in the [matrix](test-cases.md), 15 functional and 26 negative, with 4 of critical priority.
+- **Defects found:** 13 open issues.
 - **Run time:** the full suite runs in under 1 second against the local API and in 25 to 40 seconds against the public one.

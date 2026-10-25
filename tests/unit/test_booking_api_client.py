@@ -174,3 +174,24 @@ def test_basic_auth_together_with_a_token_sends_both(requests_mock: Mocker) -> N
     assert requests_mock.last_request is not None
     assert requests_mock.last_request.headers["Authorization"] == EXPECTED_AUTHORIZATION
     assert requests_mock.last_request.headers["Cookie"] == "token=tok123"
+
+
+def test_get_booking_ids_raw_sends_the_params_with_any_name(requests_mock: Mocker) -> None:
+    requests_mock.get(f"{BASE_URL}/booking", json=[])
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.get_booking_ids_raw({"lastname[$ne]": "x"})
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.qs == {"lastname[$ne]": ["x"]}
+
+
+def test_create_booking_from_text_sends_the_body_as_is_with_a_json_content_type(requests_mock: Mocker) -> None:
+    requests_mock.post(f"{BASE_URL}/booking", status_code=400, text="Bad Request")
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.create_booking_from_text("{nao-e-json")
+
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.text == "{nao-e-json"
+    assert requests_mock.last_request.headers["Content-Type"] == "application/json"

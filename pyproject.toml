@@ -42,6 +42,7 @@ only_rerun = ["^(ConnectionError|ConnectTimeout|ReadTimeout):"]
 # quebra a coleta em vez de virar só um aviso.
 markers = [
     "smoke: fluxos ponta-a-ponta mais críticos (pytest -m smoke)",
+    "seguranca: testes de segurança leves, baseados no OWASP API Security Top 10 (pytest -m seguranca)",
 ]
 
 [tool.ruff]
