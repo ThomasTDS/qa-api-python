@@ -13,7 +13,7 @@ dev = [
     "pytest>=8.3",
     "pytest-bdd>=8.1",
     "pytest-rerunfailures>=15.0",
-    "pytest-html>=4.1",
+    "allure-pytest-bdd>=2.16",
     "pytest-cov>=6.0",
     "requests-mock>=1.12",
     "pip-audit>=2.7",
@@ -32,7 +32,7 @@ include = ["api*", "models*"]
 
 [tool.pytest.ini_options]
 testpaths = ["steps", "tests"]
-addopts = "--strict-markers --reruns 1 --html=reports/report.html --self-contained-html --cov=api --cov=models --cov-report=term-missing --cov-report=xml:reports/coverage.xml"
+addopts = "--strict-markers --reruns 1 --alluredir=reports/allure-results --clean-alluredir --cov=api --cov=models --cov-report=term-missing --cov-report=xml:reports/coverage.xml"
 # O retry só vale para falhas de rede (conexão recusada ou timeout), que são
 # instabilidade da API pública. Falha de asserção ou de schema nunca é
 # repetida, para que um bug intermitente não passe na segunda tentativa.

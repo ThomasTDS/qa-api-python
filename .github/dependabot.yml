@@ -27,3 +27,12 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+
+  # Allure 3, a única dependência Node do projeto (package.json).
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    groups:
+      npm:
+        update-types: ['minor', 'patch']
