@@ -35,6 +35,7 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 | Unit | [tests/unit/](../tests/unit/) | Whether the API Clients build each request correctly (URL, payload, cookie, timeout) and whether the models accept and reject what they should | Runs with no network, in milliseconds, and separates failures in the project's code from failures in the API |
 | Integration (BDD) | [features/](../features/) and [steps/](../steps/) | The real behavior of the API, with Gherkin scenarios | The scenarios work as tests and as a readable specification at the same time |
 | Contract | [models/booking.py](../models/booking.py) | Each response validated against a Pydantic model in strict mode | A change in the shape or type of a response fails the test instead of going unnoticed |
+| Properties | [tests/unit/test_properties.py](../tests/unit/test_properties.py) | Rules that hold for any input: JSON round trip, rejection of wrong types, filters sent by the search | Hypothesis generates hundreds of inputs (1000 per test in CI) and finds cases nobody would write by hand, such as `NaN` in the price and the text `"0"` accepted as a date |
 | Smoke | `@smoke` tag | The 5 most critical end-to-end flows | A quick check that the essentials work (`pytest -m smoke`) |
 | Security | [features/security.feature](../features/security.feature), `@seguranca` tag | Injection, headers, errors, mass assignment and session | Security flaws slip past functional tests; the protection scenarios make sure a defense does not disappear in a new version (`pytest -m seguranca`) |
 | Performance | Every request made by the scenarios ([conftest.py](../conftest.py)) | Whether each response arrives within the limit (`RESPONSE_TIME_LIMIT_MS`): 500 ms on the local API and 3 s on the public one | Catches performance regressions without generating any load, since it reuses the requests the scenarios already make |
@@ -45,6 +46,7 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 - **Equivalence partitioning and invalid values:** for each field, one valid value and the relevant classes of invalid values (missing, wrong type, negative, wrong format).
 - **Boundary value analysis:** in the date filters, the booking is searched with a date before its checkin and with the same date, which is exactly where the faulty filter shows up (TC-027 and TC-028).
 - **Negative authorization tests:** every write operation is tested with no token and with an invalid token, and Basic auth with invalid credentials.
+- **Property-based testing:** instead of examples, a rule that must hold for any input, tested by Hypothesis with generated values. When it finds a case that breaks the rule, the case becomes a fixed example in the test, so it is always checked.
 - **Characterization tests:** when the API has a bug, the scenario records the current behavior and points to the issue that documents it. If the API gets fixed, the scenario fails, signaling that the issue can be closed.
 
 ## 4. Environments

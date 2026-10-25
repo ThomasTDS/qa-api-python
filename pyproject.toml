@@ -16,6 +16,7 @@ dev = [
     "allure-pytest-bdd>=2.16",
     "pytest-cov>=6.0",
     "requests-mock>=1.12",
+    "hypothesis>=6.170",
     "pip-audit>=2.7",
     "ruff>=0.14",
     "mypy>=1.14",
