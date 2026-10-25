@@ -71,7 +71,7 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 - No known vulnerability in the dependencies.
 - The test case matrix and the translations in sync, checked by the documentation tests.
 
-**Daily run:** a failure against the public API gets investigated. If it is a change in the API's behavior, it becomes an issue or updates an existing one, and the scenario is adjusted.
+**Daily run:** a failure against the public API automatically opens an issue with the `execucao-diaria` label, assigned to the repository owner; if it is already open, the new failure becomes a comment. The issue closes on its own at the first daily run that passes again. Each failure gets investigated. If it is a change in the API's behavior, it becomes an issue or updates an existing one, and the scenario is adjusted.
 
 ## 7. Risks and mitigation
 
@@ -84,7 +84,7 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 | Local API version different from the public one | A PR passes and the real API behaves differently | Image pinned by digest; Dependabot flags new versions; the daily run uses the public API |
 | New dependency breaking CI or carrying a vulnerability | Red CI with no change in the project | Versions locked in `uv.lock`; `pip-audit` on every CI run; weekly Dependabot |
 | Outdated documentation | Matrix or README describing something that does not exist | Traceability and translation sync tests |
-| Daily run failing without anyone noticing | A problem goes untreated for days (it happened from Oct 21 to 24, 2026) | Planned: open an issue automatically when the daily run fails |
+| Daily run failing without anyone noticing | A problem goes untreated for days (it happened from Oct 21 to 24, 2026) | A daily run failure opens an issue automatically, and it closes on its own when the run passes again |
 
 ## 8. Defect management
 

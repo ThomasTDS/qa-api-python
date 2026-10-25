@@ -71,7 +71,7 @@ Os testes rodam em Python 3.12 e 3.13, com as dependências travadas no [uv.lock
 - Nenhuma vulnerabilidade conhecida nas dependências.
 - A matriz de test cases e as traduções sincronizadas, verificadas pelos testes de documentação.
 
-**Execução diária:** uma falha contra a API pública é investigada. Se for uma mudança de comportamento da API, ela vira uma issue ou atualiza uma existente, e o cenário é ajustado.
+**Execução diária:** uma falha contra a API pública abre automaticamente uma issue com o rótulo `execucao-diaria`, atribuída ao dono do repositório; se ela já estiver aberta, a falha nova vira um comentário. A issue fecha sozinha na primeira execução diária que voltar a passar. Cada falha é investigada. Se for uma mudança de comportamento da API, ela vira uma issue ou atualiza uma existente, e o cenário é ajustado.
 
 ## 7. Riscos e mitigação
 
@@ -84,7 +84,7 @@ Os testes rodam em Python 3.12 e 3.13, com as dependências travadas no [uv.lock
 | Versão da API local diferente da pública | Um PR passa e a API real se comporta de outro jeito | Imagem fixada pelo digest; Dependabot avisa quando sai versão nova; a execução diária usa a pública |
 | Dependência nova quebrando o CI ou com vulnerabilidade | CI vermelho sem mudança no projeto | Versões travadas no `uv.lock`; `pip-audit` em todo CI; Dependabot semanal |
 | Documentação desatualizada | Matriz ou README descrevendo algo que não existe | Testes de rastreabilidade e de sincronia das traduções |
-| Falha na execução diária sem ninguém perceber | Um problema fica dias sem tratamento (aconteceu entre 21 e 24/10/2026) | Planejado: abrir uma issue automaticamente quando a execução diária falhar |
+| Falha na execução diária sem ninguém perceber | Um problema fica dias sem tratamento (aconteceu entre 21 e 24/10/2026) | Uma falha na execução diária abre uma issue automaticamente, e ela fecha sozinha quando a execução volta a passar |
 
 ## 8. Gestão de defeitos
 

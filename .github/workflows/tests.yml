@@ -7,6 +7,15 @@ on:
     branches: [master]
   schedule:
     - cron: '0 6 * * *'
+  # Disparo manual: roda a mesma verificação da execução diária, contra a API
+  # pública. "simular_falha" força uma falha, para conferir que a issue de
+  # acompanhamento abre e fecha como deveria.
+  workflow_dispatch:
+    inputs:
+      simular_falha:
+        description: 'Simular uma falha (para validar a issue de acompanhamento)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -74,7 +83,7 @@ jobs:
       matrix:
         python-version: ['3.12', '3.13']
     env:
-      BASE_URL: ${{ github.event_name == 'schedule' && 'https://restful-booker.herokuapp.com' || 'http://localhost:3001' }}
+      BASE_URL: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'https://restful-booker.herokuapp.com' || 'http://localhost:3001' }}
 
     steps:
       - name: Checkout código
@@ -93,8 +102,14 @@ jobs:
 
       # O container leva alguns segundos para começar a responder; o /ping
       # devolve 201 quando a API está pronta.
+      - name: Simular falha
+        if: inputs.simular_falha
+        run: |
+          echo "Falha simulada pelo disparo manual, para validar a issue de acompanhamento"
+          exit 1
+
       - name: Subir a restful-booker local
-        if: github.event_name != 'schedule'
+        if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
         run: |
           docker compose up -d
           for i in $(seq 1 30); do
@@ -140,6 +155,58 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: pages
+
+  # Acompanhamento da execução diária (e do disparo manual), que roda contra a
+  # API pública: na falha, abre uma issue com o rótulo execucao-diaria, ou
+  # comenta nela se já estiver aberta; quando volta a passar, comenta e fecha.
+  # Assim uma falha não passa dias despercebida, como aconteceu em outubro.
+  acompanhar-execucao-diaria:
+    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    needs: [unit, integration]
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Abrir, comentar ou fechar a issue de acompanhamento
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RESULTADO_UNIT: ${{ needs.unit.result }}
+          RESULTADO_INTEGRATION: ${{ needs.integration.result }}
+          SIMULADA: ${{ inputs.simular_falha }}
+        run: |
+          LABEL=execucao-diaria
+          DATA=$(date -u '+%d/%m/%Y %H:%M UTC')
+          gh label create "$LABEL" --color D93F0B --description "Falha na execução diária contra a API pública" --force
+          ISSUE=$(gh issue list --label "$LABEL" --state open --json number --jq '.[0].number // empty')
+
+          if [ "$RESULTADO_UNIT" = "success" ] && [ "$RESULTADO_INTEGRATION" = "success" ]; then
+            if [ -n "$ISSUE" ]; then
+              gh issue comment "$ISSUE" --body "Voltou a passar em $DATA: $RUN_URL"
+              gh issue close "$ISSUE"
+            fi
+            exit 0
+          fi
+
+          DETALHE="Falhou em $DATA (unit: $RESULTADO_UNIT, integration: $RESULTADO_INTEGRATION): $RUN_URL"
+          if [ -n "$ISSUE" ]; then
+            gh issue comment "$ISSUE" --body "$DETALHE"
+            exit 0
+          fi
+
+          TITULO="Execução diária contra a API pública falhando"
+          if [ "$SIMULADA" = "true" ]; then
+            TITULO="[Validação] $TITULO (falha simulada)"
+          fi
+          {
+            echo "$DETALHE"
+            echo
+            echo "Verificar se é uma mudança de comportamento da API pública ou um problema do projeto (ver a seção 6 de docs/test-strategy.md)."
+            echo
+            echo "Esta issue fecha sozinha na próxima execução diária que passar."
+          } > corpo.md
+          gh issue create --title "$TITULO" --label "$LABEL" --assignee "$GITHUB_REPOSITORY_OWNER" --body-file corpo.md
 
   deploy-pages:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
