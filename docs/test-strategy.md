@@ -62,7 +62,7 @@ Os testes rodam em Python 3.12 e 3.13, com as dependências travadas no [uv.lock
 
 ## 6. Critérios de entrada e saída
 
-**Entrada:** os testes de integração só começam se o job `unit` passar (checagens estáticas e testes unitários) e se a API responder ao `GET /ping`.
+**Entrada:** os testes de integração só começam se o job `unit` passar (checagens estáticas e testes unitários) e se a API responder ao `GET /ping`. Essa verificação é feita uma vez por execução, pela fixture `api_disponivel` ([conftest.py](../conftest.py)): sem resposta, cada teste de integração aparece como erro com o motivo, e os unitários rodam normalmente.
 
 **Saída, para mergear um PR**, configurada na proteção da branch `master`:
 
@@ -77,7 +77,7 @@ Os testes rodam em Python 3.12 e 3.13, com as dependências travadas no [uv.lock
 
 | Risco | Impacto | Mitigação |
 | ----- | ------- | --------- |
-| API pública fora do ar ou lenta | Falhas que não são do projeto, bloqueando o merge | API local nos PRs; timeout em toda chamada; retry só para falhas de rede |
+| API pública fora do ar ou lenta | Falhas que não são do projeto, bloqueando o merge | API local nos PRs; verificação de saúde que interrompe a integração com uma mensagem clara; timeout em toda chamada; retry só para falhas de rede |
 | Dados alterados por terceiros na API pública | Resultado diferente a cada execução | API local nos PRs; dados únicos por teste; limpeza ao fim de cada teste |
 | Mudança de contrato sem aviso | O teste passa com dados errados | Validação de schema no modo estrito; execução diária na API pública |
 | Bug intermitente escondido pelo retry | Um defeito real passa na segunda tentativa | O retry só repete erros de conexão e de timeout, nunca falhas de asserção |

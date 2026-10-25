@@ -26,6 +26,7 @@ API_PASSWORD = os.environ.get("API_PASSWORD", "password123")
 
 
 FEATURES_DIR = Path(__file__).parent / "features"
+STEPS_DIR = Path(__file__).parent / "steps"
 
 
 # Cada cenário tem uma tag @TC-XXX na linha logo acima de "Cenário:". Devolve,
@@ -71,6 +72,37 @@ class Context:
     @property
     def token_or_empty(self) -> str:
         return self.token or ""
+
+
+# Verificação de saúde, feita uma vez por sessão, antes do primeiro teste de
+# integração. Com a API fora do ar, cada teste de integração aparece como
+# ERROR com o motivo, em vez de fazer as próprias chamadas, esperar o timeout
+# e ser repetido pelo retry. O pytest guarda a falha da fixture e a repete
+# nos testes seguintes, então o /ping não é chamado de novo.
+@pytest.fixture(scope="session")
+def api_disponivel() -> None:
+    problem: str | None = None
+    with requests.Session() as session:
+        try:
+            response = HealthApiClient(session, BASE_URL).ping()
+            if response.status_code != 201:
+                problem = f"o /ping respondeu {response.status_code}"
+        except requests.RequestException as error:
+            problem = str(error)
+    # Fora do except de propósito: assim a falha não carrega a exceção de
+    # conexão encadeada, que faria o retry (only_rerun) repetir o teste.
+    if problem is not None:
+        pytest.fail(f"API indisponível em {BASE_URL}: {problem}", pytrace=False)
+
+
+# Roda na preparação de cada teste da pasta steps/ (os de integração). No
+# pytest-bdd, a fixture context só é pedida pelos steps, já durante o teste;
+# a verificação precisa vir antes, para a falha aparecer como ERROR. Os
+# testes unitários não passam por aqui e rodam mesmo sem a API.
+@pytest.fixture(autouse=True)
+def _exige_api_nos_testes_de_integracao(request: pytest.FixtureRequest) -> None:
+    if request.node.path.is_relative_to(STEPS_DIR):
+        request.getfixturevalue("api_disponivel")
 
 
 @pytest.fixture

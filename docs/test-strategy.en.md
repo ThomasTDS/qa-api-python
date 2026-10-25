@@ -62,7 +62,7 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 
 ## 6. Entry and exit criteria
 
-**Entry:** the integration tests only start if the `unit` job passes (static checks and unit tests) and if the API answers `GET /ping`.
+**Entry:** the integration tests only start if the `unit` job passes (static checks and unit tests) and if the API answers `GET /ping`. This check runs once per execution, through the `api_disponivel` fixture ([conftest.py](../conftest.py)): with no answer, each integration test shows up as an error with the reason, and the unit tests run normally.
 
 **Exit, to merge a PR**, configured in the `master` branch protection:
 
@@ -77,7 +77,7 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 
 | Risk | Impact | Mitigation |
 | ---- | ------ | ---------- |
-| Public API down or slow | Failures that are not the project's fault, blocking the merge | Local API on PRs; timeout on every call; retry for network failures only |
+| Public API down or slow | Failures that are not the project's fault, blocking the merge | Local API on PRs; health check that stops the integration tests with a clear message; timeout on every call; retry for network failures only |
 | Data changed by third parties on the public API | Different results on every run | Local API on PRs; unique data per test; cleanup at the end of each test |
 | Contract change without notice | The test passes with wrong data | Schema validation in strict mode; daily run against the public API |
 | Intermittent bug hidden by the retry | A real defect passes on the second attempt | The retry only repeats connection and timeout errors, never assertion failures |
