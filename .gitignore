@@ -16,6 +16,7 @@ reports/
 # Node (só para o Allure 3)
 node_modules/
 .pytest_cache/
+.hypothesis/
 .coverage
 .coverage.*
 htmlcov/

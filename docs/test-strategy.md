@@ -35,6 +35,7 @@ Verificar o comportamento da API pública [restful-booker](https://restful-booke
 | Unitário | [tests/unit/](../tests/unit/) | Se os API Clients montam cada requisição certo (URL, payload, cookie, timeout) e se os modelos aceitam e rejeitam o que devem | Roda sem rede, em milissegundos, e isola falhas do código do projeto das falhas da API |
 | Integração (BDD) | [features/](../features/) e [steps/](../steps/) | O comportamento real da API, com cenários em Gherkin | Os cenários servem ao mesmo tempo de teste e de especificação legível |
 | Contrato | [models/booking.py](../models/booking.py) | Cada resposta validada contra um modelo Pydantic no modo estrito | Uma mudança de formato ou de tipo na resposta falha o teste, em vez de passar sem ser notada |
+| Propriedades | [tests/unit/test_properties.py](../tests/unit/test_properties.py) | Regras que valem para qualquer entrada: ida e volta pelo JSON, recusa de tipos errados, filtros enviados pela busca | O Hypothesis gera centenas de entradas (1000 por teste no CI) e acha casos que ninguém escreveria à mão, como o `NaN` no preço e o texto `"0"` aceito como data |
 | Smoke | tag `@smoke` | Os 5 fluxos mais críticos, de ponta a ponta | Uma verificação rápida de que o essencial funciona (`pytest -m smoke`) |
 | Segurança | [features/security.feature](../features/security.feature), tag `@seguranca` | Injeção, cabeçalhos, erros, atribuição em massa e sessão | Falhas de segurança passam despercebidas nos testes funcionais; os cenários de proteção garantem que uma defesa não suma numa versão nova (`pytest -m seguranca`) |
 | Desempenho | Todas as requisições dos cenários ([conftest.py](../conftest.py)) | Se cada resposta chega dentro do limite (`RESPONSE_TIME_LIMIT_MS`): 500 ms na API local e 3 s na pública | Pega regressões de desempenho sem gerar carga nenhuma, porque reaproveita as requisições que os cenários já fazem |
@@ -45,6 +46,7 @@ Verificar o comportamento da API pública [restful-booker](https://restful-booke
 - **Partição de equivalência e valores inválidos:** para cada campo, um valor válido e as classes de valor inválido relevantes (ausente, tipo errado, negativo, formato errado).
 - **Análise de valor-limite:** nos filtros por data, o booking é buscado com uma data anterior e com a mesma data do seu checkin, que é exatamente onde o filtro errado aparece (TC-027 e TC-028).
 - **Testes negativos de autorização:** cada operação de escrita é testada sem token e com token inválido, e o Basic auth, com credenciais inválidas.
+- **Testes baseados em propriedades:** em vez de exemplos, uma regra que precisa valer para qualquer entrada, testada pelo Hypothesis com valores gerados. Quando ele acha um caso que quebra a regra, o caso vira um exemplo fixo no teste, para nunca deixar de ser verificado.
 - **Testes de caracterização:** quando a API tem um bug, o cenário registra o comportamento atual e aponta para a issue que o documenta. Se a API for corrigida, o cenário falha, avisando que a issue pode ser fechada.
 
 ## 4. Ambientes

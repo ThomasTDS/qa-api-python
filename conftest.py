@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 import allure
 import pytest
 import requests
+from hypothesis import settings
 from pydantic import ValidationError
 
 from api.auth_api_client import AuthApiClient
@@ -19,6 +20,15 @@ from models.booking import Booking
 
 # Steps compartilhados entre features (token, Basic auth, booking criado, health check, 403, 405 e 500).
 pytest_plugins = ["steps.common_steps"]
+
+# Perfis do Hypothesis (testes de propriedade): o padrão gera 100 exemplos por
+# teste, para rodar rápido localmente; o perfil "ci", ativado no workflow com
+# --hypothesis-profile=ci, gera 1000, já que no CI sobra tempo e nada acessa a rede.
+# O prazo por exemplo (deadline) fica desligado: ele serve para achar código
+# lento, mas aqui o tempo varia com a máquina (um mesmo exemplo levou 318 ms na
+# primeira vez e 2 ms na repetição), e o Hypothesis acusava o teste como instável.
+settings.register_profile("default", deadline=None)
+settings.register_profile("ci", max_examples=1000, deadline=None)
 
 BASE_URL = os.environ.get("BASE_URL", "https://restful-booker.herokuapp.com")
 # O padrão são as credenciais públicas da documentação da restful-booker, para
