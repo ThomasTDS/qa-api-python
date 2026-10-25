@@ -1,0 +1,12 @@
+{
+  "name": "qa-api-python-report",
+  "private": true,
+  "description": "Gera o relatório Allure dos testes. O projeto é Python; o Node serve só para o Allure 3.",
+  "scripts": {
+    "report": "allure generate reports/allure-results --clean",
+    "report:open": "allure open reports/allure-report"
+  },
+  "devDependencies": {
+    "allure": "3.22.1"
+  }
+}

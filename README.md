@@ -15,7 +15,7 @@ O objetivo é praticar testes de API "de verdade": autenticação, CRUD completo
 
 O que é testado, como e por quê (escopo, abordagem por nível, ambientes, riscos e critérios de saída) está na [estratégia de testes](docs/test-strategy.md).
 
-![Relatório de execução dos testes gerado pelo pytest-html](docs/assets/report-example.png)
+![Relatório de execução dos testes](docs/assets/report-example.png)
 
 *Exemplo do relatório de execução (captura de tela). O relatório ao vivo e sempre atualizado fica em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/).*
 
@@ -46,10 +46,13 @@ qa-api-python/
 │   └── unit/                # Testes unitários isolados de api/ e models/ (com requests-mock, sem rede) e checagem da matriz de test cases
 ├── api/                     # API Clients (AuthApiClient e BookingApiClient, sobre a base comum BaseApiClient)
 ├── models/                  # Schemas Pydantic e tipos derivados (shape dos dados da API)
-├── reports/                 # Relatório HTML e cobertura (coverage.xml) gerados a cada execução (não versionado)
+├── reports/                 # Resultados e relatório do Allure, e cobertura (coverage.xml), gerados a cada execução (não versionado)
 ├── conftest.py              # Fixtures (contexto por cenário) e captura de evidência de falha
 ├── pyproject.toml           # Dependências e configuração (pytest, ruff, mypy)
 ├── uv.lock                  # Versões exatas de todas as dependências (gerado pelo uv)
+├── package.json             # Única dependência Node: o Allure 3, que gera o relatório
+├── package-lock.json        # Versão exata do Allure 3 e das dependências dele
+├── allurerc.mjs             # Configuração do relatório Allure (arquivo único, histórico, agrupamento)
 ├── docker-compose.yml       # restful-booker local, com a versão fixada, usada no CI e para rodar os testes sem a API pública
 ├── .pre-commit-config.yaml  # Hooks de pre-commit (ruff, mypy)
 ├── codecov.yml              # Metas de cobertura verificadas pelo Codecov nos PRs
@@ -74,6 +77,8 @@ pre-commit install
 
 Ao alterar uma dependência no `pyproject.toml`, rode `uv lock` e versione o `uv.lock` junto. O CI instala com `uv sync --locked` e falha se os dois arquivos estiverem fora de sincronia.
 
+Para gerar o relatório Allure também é preciso o [Node.js](https://nodejs.org/) (o CI usa a versão 24). O Allure 3 é a única dependência Node do projeto.
+
 Não é necessário instalar nenhum navegador: como são testes de API, só a biblioteca `requests` é usada para fazer as chamadas HTTP.
 
 ### Rodar todos os testes
@@ -82,7 +87,14 @@ Não é necessário instalar nenhum navegador: como são testes de API, só a bi
 pytest
 ```
 
-Ao final da execução, um relatório HTML é gerado em `reports/report.html` (não versionado).
+Cada execução grava os resultados em `reports/allure-results` (não versionado). Para ver o relatório Allure:
+
+```
+npm ci            # uma vez: instala o Allure 3, na versão do package-lock.json
+npm run report    # gera reports/allure-report/index.html a partir da última execução
+```
+
+O relatório mostra os cenários BDD, agrupados por funcionalidade e com os passos `Dado`, `Quando` e `Então`. Os testes unitários aparecem só no terminal, porque o plugin do Allure para o pytest-bdd registra apenas os cenários.
 
 O relatório da execução mais recente em `master` também fica publicado em **[thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/)**, sem precisar rodar nada localmente ou baixar artifact do CI.
 
@@ -92,7 +104,7 @@ O relatório da execução mais recente em `master` também fica publicado em **
 pytest -m smoke
 ```
 
-Roda só os fluxos ponta-a-ponta mais críticos (autenticação, criação, consulta, atualização e remoção — ver [docs/test-cases.md](docs/test-cases.md)). Como o `pyproject.toml` sempre escreve no mesmo arquivo, rodar isso depois de `pytest` **sobrescreve** `reports/report.html` com só esses 5 cenários.
+Roda só os fluxos ponta-a-ponta mais críticos (autenticação, criação, consulta, atualização e remoção — ver [docs/test-cases.md](docs/test-cases.md)). Como cada execução do `pytest` limpa `reports/allure-results`, gerar o relatório depois disso mostra **só esses 5 cenários**.
 
 ### Rodar só os testes unitários
 
@@ -180,13 +192,13 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Pirâmide de testes: além dos cenários de BDD (`steps/`), que são testes de integração reais contra a `restful-booker`, `tests/unit/` cobre `api/` e `models/` de forma isolada, com `requests-mock` simulando as respostas HTTP — sem rede, sem depender da API pública estar no ar.
 - Validação de schema com [Pydantic](https://docs.pydantic.dev/): as respostas da API são validadas em tempo de execução contra os modelos em `models/booking.py` (fonte única de verdade), não só tipadas por anotação — se a API mudar o formato de uma resposta, o teste falha com uma mensagem clara em vez de passar silenciosamente ou quebrar mais adiante. Os modelos usam o modo estrito do Pydantic, que não converte tipos por conta própria: um `totalprice` enviado como texto (`"150"`), um `depositpaid` como `"true"` ou uma data fora do formato `AAAA-MM-DD` reprovam a validação. Campos extras na resposta são ignorados, porque a API é de terceiros e um campo a mais não é defeito.
 - Cobertura de health check, autenticação (token e Basic auth), CRUD completo, filtros por nome e por data, PUT vs. PATCH, e casos de acesso não autorizado (403).
-- Relatório HTML automatizado a cada execução (`reports/report.html`, via `pytest-html`), com a versão da `master` publicada em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/) via GitHub Pages.
+- Relatório [Allure](https://allurereport.org/) a cada execução: os cenários aparecem agrupados por funcionalidade, com os passos `Dado`, `Quando` e `Então`, e um passo que falha traz anexada a última resposta da API (URL, status, headers e corpo). A versão da `master` fica publicada em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/), com o histórico entre execuções, que mostra tendências e testes instáveis. Os testes unitários não entram no Allure: o resultado deles fica no terminal e no log do CI, e a cobertura no Codecov.
 - Cobertura de código (`pytest-cov`) de `api/` e `models/` em cada execução, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - Verificação de saúde antes da integração: uma fixture de sessão chama o `GET /ping` uma vez, antes do primeiro cenário. Com a API fora do ar, cada teste de integração aparece como erro com a mensagem "API indisponível em <url>" e o motivo, em segundos, em vez de dezenas de falhas de conexão que levariam minutos e pareceriam bugs. Os testes unitários rodam normalmente.
 - Limpeza automática: a fixture `context` remove o booking criado no cenário (via token próprio de limpeza) ao final de cada teste, evitando acúmulo de dados na API pública. Se a remoção falhar por erro de rede ou de autenticação, o pytest mostra um aviso com o id do booking que ficou para trás, sem mudar o resultado do teste.
 - Dados de teste únicos: cada booking criado leva um sufixo aleatório no sobrenome (ex: `Ciclano-3f9a1c`). Como a API pública é compartilhada, inclusive pelas execuções paralelas do CI, a busca por nome encontra só o booking do próprio teste.
 - Retry automático só para falhas de rede (`pytest-rerunfailures`, com `--reruns 1` e `only_rerun` no `pyproject.toml`): um teste que falha por erro de conexão ou timeout roda uma segunda vez, amortecendo a instabilidade da API pública de demonstração. Falhas de asserção ou de schema nunca são repetidas, para que um bug intermitente não passe na segunda tentativa.
-- Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra uma restful-booker local, num container com a versão fixada no `docker-compose.yml`. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)). A execução diária roda contra a API pública, para detectar quando o comportamento dela mudar, com o relatório HTML publicado como artifact do workflow. Se ela falhar, uma issue com o rótulo `execucao-diaria` é aberta automaticamente (ou ganha um comentário, se já estiver aberta), e fecha sozinha quando a execução volta a passar. A mesma verificação pode ser disparada manualmente pela aba Actions.
+- Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra uma restful-booker local, num container com a versão fixada no `docker-compose.yml`. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)). A execução diária roda contra a API pública, para detectar quando o comportamento dela mudar, com o relatório Allure publicado como artifact do workflow. Se ela falhar, uma issue com o rótulo `execucao-diaria` é aberta automaticamente (ou ganha um comentário, se já estiver aberta), e fecha sozinha quando a execução volta a passar. A mesma verificação pode ser disparada manualmente pela aba Actions.
 - Dependências atualizadas automaticamente pelo Dependabot (uv, GitHub Actions e a imagem Docker da API local, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). As atualizações de patch e minor chegam agrupadas, um PR por semana para cada ecossistema, e são mergeadas automaticamente quando o CI passa ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.
 - Auditoria de vulnerabilidades conhecidas nas dependências instaladas a cada execução do CI, via [`pip-audit`](https://github.com/pypa/pip-audit); encontrar uma vulnerabilidade quebra o build.
 - Rastreabilidade de QA: matriz de test cases em [docs/test-cases.md](docs/test-cases.md), com tags `@TC-XXX` em cada `Cenário` e um subconjunto `@smoke` (`pytest -m smoke`) cobrindo os fluxos ponta-a-ponta mais críticos. Os marcadores `TC-XXX` são registrados automaticamente a partir das tags dos `.feature`, o pytest roda com `--strict-markers` (uma tag com erro de digitação quebra a coleta), e o teste [tests/unit/test_traceability.py](tests/unit/test_traceability.py) garante que a matriz lista exatamente os TCs dos `.feature`, com links para a linha certa de cada cenário. Bugs reais encontrados são documentados como GitHub Issues usando o template em [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md).

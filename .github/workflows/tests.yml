@@ -136,19 +136,39 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
-      - name: Publicar relatório HTML
+      # Relatório Allure 3 (ferramenta Node, versão travada no package-lock.json).
+      - name: Instalar Node
+        if: always() && matrix.python-version == '3.12'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      # O histórico do relatório publicado no Pages alimenta as tendências e a
+      # detecção de testes instáveis. Na primeira publicação ele ainda não
+      # existe, e o relatório começa um histórico novo.
+      - name: Gerar relatório Allure
+        if: always() && matrix.python-version == '3.12'
+        run: |
+          npm ci --no-audit --no-fund
+          curl -sfL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.jsonl" \
+            -o reports/history.jsonl || echo "Sem histórico publicado ainda"
+          npm run report
+
+      - name: Publicar relatório Allure
         if: always() && matrix.python-version == '3.12'
         uses: actions/upload-artifact@v7
         with:
-          name: pytest-report
-          path: reports/report.html
+          name: allure-report
+          path: reports/allure-report
           retention-days: 15
 
       - name: Preparar página do GitHub Pages
         if: matrix.python-version == '3.12' && github.ref == 'refs/heads/master' && github.event_name == 'push'
         run: |
           mkdir -p pages
-          cp reports/report.html pages/index.html
+          cp reports/allure-report/index.html pages/index.html
+          cp reports/history.jsonl pages/history.jsonl
 
       - name: Empacotar artifact do GitHub Pages
         if: matrix.python-version == '3.12' && github.ref == 'refs/heads/master' && github.event_name == 'push'

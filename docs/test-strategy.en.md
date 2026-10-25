@@ -91,13 +91,13 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 - Each real defect in the API becomes a GitHub issue, using the [bug template](../.github/ISSUE_TEMPLATE/bug_report.md): steps to reproduce, expected and actual result, and evidence.
 - The template separates **severity** (technical impact: Blocker, Critical, Major, Minor) from **priority** (urgency to fix: P0 to P3), because a defect can be serious and not urgent, or the other way around.
 - The scenario that found the defect cites the issue in a comment in the `.feature` file and records the current behavior (section 3, characterization tests).
-- When a test fails in CI, the report shows the URL, status, headers and body of the last response, which already serves as evidence for the issue.
+- When a scenario fails, the URL, status, headers and body of the last response are attached to the failing step in the Allure report, and also show up in the terminal and the CI log. That already serves as evidence for the issue.
 
 So far, 10 defects are documented: most about input validation or status codes, and two about logic in the date filters. When the cause can be confirmed in the [API source code](https://github.com/mwinteringham/restful-booker), the issue points to the line responsible. For example: the API returns 500 when a required field is missing ([#8](https://github.com/ThomasTDS/qa-api-python/issues/8)) and accepts a negative price ([#21](https://github.com/ThomasTDS/qa-api-python/issues/21)).
 
 ## 9. Metrics and reports
 
-- **Result of each run:** HTML report published on [GitHub Pages](https://thomastds.github.io/qa-api-python/) on every push to `master`, and kept as an artifact on every PR.
+- **Result of each run:** Allure report published on [GitHub Pages](https://thomastds.github.io/qa-api-python/) on every push to `master`, with the history across runs (trends and flaky tests), and kept as an artifact on every PR. Allure shows the BDD scenarios; the unit test results stay in the CI log.
 - **Code coverage:** of `api/` and `models/`, tracked on [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - **Test cases:** 34 in the [matrix](test-cases.md), 15 functional and 19 negative, with 3 of critical priority.
 - **Defects found:** 10 open issues.

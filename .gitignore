@@ -12,6 +12,9 @@ venv/
 
 # Test reports
 reports/
+
+# Node (só para o Allure 3)
+node_modules/
 .pytest_cache/
 .coverage
 .coverage.*
