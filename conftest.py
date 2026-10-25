@@ -5,6 +5,7 @@ import warnings
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import allure
 import pytest
@@ -24,6 +25,10 @@ BASE_URL = os.environ.get("BASE_URL", "https://restful-booker.herokuapp.com")
 # o projeto rodar sem configuração. Outro ambiente pode usar credenciais próprias.
 API_USERNAME = os.environ.get("API_USERNAME", "admin")
 API_PASSWORD = os.environ.get("API_PASSWORD", "password123")
+# Tempo máximo de cada resposta, em milissegundos. O padrão de 3 s é o dobro
+# do pior tempo medido na API pública (cerca de 1,4 s); o CI usa 500 ms contra
+# a API local, onde cada resposta leva poucos milissegundos.
+RESPONSE_TIME_LIMIT_MS = int(os.environ.get("RESPONSE_TIME_LIMIT_MS", "3000"))
 
 
 FEATURES_DIR = Path(__file__).parent / "features"
@@ -61,6 +66,16 @@ class Context:
         self.booking_id: int | None = None
         self.booking_data: Booking | None = None
         self.last_response: requests.Response | None = None
+        # Respostas acima do limite de tempo, anotadas por um hook da sessão e
+        # cobradas ao fim do cenário (pytest_bdd_after_scenario).
+        self.slow_responses: list[str] = []
+        session.hooks["response"].append(self._check_elapsed)
+
+    def _check_elapsed(self, response: requests.Response, *args: Any, **kwargs: Any) -> None:
+        elapsed_ms = response.elapsed.total_seconds() * 1000
+        if elapsed_ms > RESPONSE_TIME_LIMIT_MS:
+            path = urlsplit(response.url).path
+            self.slow_responses.append(f"{response.request.method} {path} levou {elapsed_ms:.0f} ms")
 
     # Atalho para os steps de verificação: falha com mensagem clara se o
     # cenário chegou ao Then sem ter feito nenhuma requisição.
@@ -150,6 +165,17 @@ def _evidence(response: requests.Response) -> str:
 # (URL, status, headers e corpo), que já serve de evidência para uma issue. É
 # este gancho do pytest-bdd que recebe a fixture context: no pytest-bdd quem
 # pede a context são os steps, então ela não aparece nos argumentos do teste.
+# Ao fim de cada cenário, falha o teste se alguma resposta passou do limite de
+# tempo, listando todas de uma vez. Roda dentro do teste, então a falha conta
+# como do cenário (e não da limpeza); por ser uma falha de asserção, e não de
+# rede, o retry não a repete.
+def pytest_bdd_after_scenario(request: pytest.FixtureRequest, **_: Any) -> None:
+    ctx = request.getfixturevalue("context")
+    if isinstance(ctx, Context) and ctx.slow_responses:
+        lista = "; ".join(ctx.slow_responses)
+        pytest.fail(f"Resposta acima do limite de {RESPONSE_TIME_LIMIT_MS} ms: {lista}", pytrace=False)
+
+
 def pytest_bdd_step_error(request: pytest.FixtureRequest, step_func_args: dict[str, Any], **_: Any) -> None:
     ctx = step_func_args.get("context")
     if not isinstance(ctx, Context) or ctx.last_response is None:

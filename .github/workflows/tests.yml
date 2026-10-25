@@ -84,6 +84,8 @@ jobs:
         python-version: ['3.12', '3.13']
     env:
       BASE_URL: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'https://restful-booker.herokuapp.com' || 'http://localhost:3001' }}
+      # Limite de tempo de cada resposta: 3 s na API pública, 500 ms na local.
+      RESPONSE_TIME_LIMIT_MS: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '3000' || '500' }}
 
     steps:
       - name: Checkout código

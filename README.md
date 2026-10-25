@@ -157,11 +157,12 @@ Os dados ficam em memória e voltam ao estado inicial a cada `docker compose up`
 
 Por padrão os testes apontam para `https://restful-booker.herokuapp.com` e se autenticam com as credenciais públicas da documentação da API (`admin` / `password123`). Para rodar contra outro ambiente (ex: uma instância local ou de staging), defina as variáveis de ambiente:
 
-| Variável       | Padrão                                  | Uso                                  |
-| -------------- | --------------------------------------- | ------------------------------------ |
-| `BASE_URL`     | `https://restful-booker.herokuapp.com` | Endereço da API                      |
-| `API_USERNAME` | `admin`                                 | Usuário usado para gerar o token     |
-| `API_PASSWORD` | `password123`                           | Senha usada para gerar o token       |
+| Variável                 | Padrão                                 | Uso                                                                               |
+| ------------------------ | -------------------------------------- | --------------------------------------------------------------------------------- |
+| `BASE_URL`               | `https://restful-booker.herokuapp.com` | Endereço da API                                                                   |
+| `API_USERNAME`           | `admin`                                | Usuário usado para gerar o token                                                  |
+| `API_PASSWORD`           | `password123`                          | Senha usada para gerar o token                                                    |
+| `RESPONSE_TIME_LIMIT_MS` | `3000`                                 | Tempo máximo de cada resposta, em milissegundos (o CI usa 500 contra a API local) |
 
 ```
 # PowerShell
@@ -205,6 +206,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Verificação de saúde antes da integração: uma fixture de sessão chama o `GET /ping` uma vez, antes do primeiro cenário. Com a API fora do ar, cada teste de integração aparece como erro com a mensagem "API indisponível em <url>" e o motivo, em segundos, em vez de dezenas de falhas de conexão que levariam minutos e pareceriam bugs. Os testes unitários rodam normalmente.
 - Limpeza automática: a fixture `context` remove o booking criado no cenário (via token próprio de limpeza) ao final de cada teste, evitando acúmulo de dados na API pública. Se a remoção falhar por erro de rede ou de autenticação, o pytest mostra um aviso com o id do booking que ficou para trás, sem mudar o resultado do teste.
 - Dados de teste únicos: cada booking criado leva um sufixo aleatório no sobrenome (ex: `Ciclano-3f9a1c`). Como a API pública é compartilhada, inclusive pelas execuções paralelas do CI, a busca por nome encontra só o booking do próprio teste.
+- Limite de tempo de resposta: um hook na sessão do `requests` mede cada resposta dos cenários, e o cenário falha se alguma passar do limite, com a rota e o tempo na mensagem (por exemplo, "POST /booking levou 3214 ms"). O limite é de 500 ms contra a API local, onde cada resposta leva poucos milissegundos, e de 3 s contra a pública, o dobro do pior tempo medido nela (cerca de 1,4 s). Não é um teste de carga: aproveita as requisições que os cenários já fazem.
 - Retry automático só para falhas de rede (`pytest-rerunfailures`, com `--reruns 1` e `only_rerun` no `pyproject.toml`): um teste que falha por erro de conexão ou timeout roda uma segunda vez, amortecendo a instabilidade da API pública de demonstração. Falhas de asserção ou de schema nunca são repetidas, para que um bug intermitente não passe na segunda tentativa.
 - Integração contínua via GitHub Actions, em dois jobs: `unit` roda as checagens estáticas e os testes unitários, sem rede, e `integration` só começa se o `unit` passar, rodando a suíte completa contra uma restful-booker local, num container com a versão fixada no `docker-compose.yml`. Assim, uma falha no `integration` com o `unit` verde aponta para a API ou para um cenário, e não para o código dos clients. Os dois rodam a cada push e pull request para `master`, em Python 3.12 e 3.13, e também diariamente às 06:00 UTC (ver [.github/workflows/tests.yml](.github/workflows/tests.yml)). A execução diária roda contra a API pública, para detectar quando o comportamento dela mudar, com o relatório Allure publicado como artifact do workflow. Se ela falhar, uma issue com o rótulo `execucao-diaria` é aberta automaticamente (ou ganha um comentário, se já estiver aberta), e fecha sozinha quando a execução volta a passar. A mesma verificação pode ser disparada manualmente pela aba Actions.
 - Dependências atualizadas automaticamente pelo Dependabot (uv, GitHub Actions e a imagem Docker da API local, semanal — ver [.github/dependabot.yml](.github/dependabot.yml)). As atualizações de patch e minor chegam agrupadas, um PR por semana para cada ecossistema, e são mergeadas automaticamente quando o CI passa ([.github/workflows/dependabot-auto-merge.yml](.github/workflows/dependabot-auto-merge.yml)); bumps de major exigem revisão manual.

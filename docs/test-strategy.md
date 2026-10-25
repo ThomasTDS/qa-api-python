@@ -18,11 +18,12 @@ Verificar o comportamento da API pública [restful-booker](https://restful-booke
 - Autorização: as duas formas de autenticação das operações de escrita (token no cookie e Basic auth), e chamadas sem credencial ou com credencial inválida.
 - Validação de entrada: campos ausentes, tipos errados, valores negativos e datas em formato inválido.
 - Contrato das respostas: formato e tipo de cada campo.
+- Tempo de resposta: cada resposta dentro de um limite, sem gerar carga.
 - Segurança, com base no OWASP API Security Top 10: injeção NoSQL, cabeçalhos de segurança, detalhes internos em respostas de erro, atribuição em massa e validade de tokens.
 
 **Fora do escopo:**
 
-- Testes de carga e desempenho: a API pública é compartilhada, e gerar carga nela prejudicaria outras pessoas.
+- Testes de carga e de estresse: a API pública é compartilhada, e gerar carga nela prejudicaria outras pessoas. O projeto verifica só o tempo de cada resposta, nas requisições que os cenários já fazem.
 - Interface web: a restful-booker não tem uma.
 - Testes de intrusão completos, força bruta e varredura automática: os testes de segurança do projeto são leves, com poucas requisições cada, para não prejudicar a API pública.
 
@@ -36,6 +37,7 @@ Verificar o comportamento da API pública [restful-booker](https://restful-booke
 | Contrato | [models/booking.py](../models/booking.py) | Cada resposta validada contra um modelo Pydantic no modo estrito | Uma mudança de formato ou de tipo na resposta falha o teste, em vez de passar sem ser notada |
 | Smoke | tag `@smoke` | Os 5 fluxos mais críticos, de ponta a ponta | Uma verificação rápida de que o essencial funciona (`pytest -m smoke`) |
 | Segurança | [features/security.feature](../features/security.feature), tag `@seguranca` | Injeção, cabeçalhos, erros, atribuição em massa e sessão | Falhas de segurança passam despercebidas nos testes funcionais; os cenários de proteção garantem que uma defesa não suma numa versão nova (`pytest -m seguranca`) |
+| Desempenho | Todas as requisições dos cenários ([conftest.py](../conftest.py)) | Se cada resposta chega dentro do limite (`RESPONSE_TIME_LIMIT_MS`): 500 ms na API local e 3 s na pública | Pega regressões de desempenho sem gerar carga nenhuma, porque reaproveita as requisições que os cenários já fazem |
 | Documentação | [tests/unit/test_traceability.py](../tests/unit/test_traceability.py) e [tests/unit/test_translation_sync.py](../tests/unit/test_translation_sync.py) | Se a matriz de test cases bate com os cenários e se as versões em português e inglês dos documentos têm a mesma estrutura | Documentação desatualizada é um defeito que nenhum teste funcional pega |
 
 **Técnicas aplicadas:**
@@ -83,6 +85,7 @@ Os testes rodam em Python 3.12 e 3.13, com as dependências travadas no [uv.lock
 | Dados alterados por terceiros na API pública | Resultado diferente a cada execução | API local nos PRs; dados únicos por teste; limpeza ao fim de cada teste |
 | Mudança de contrato sem aviso | O teste passa com dados errados | Validação de schema no modo estrito; execução diária na API pública |
 | Bug intermitente escondido pelo retry | Um defeito real passa na segunda tentativa | O retry só repete erros de conexão e de timeout, nunca falhas de asserção |
+| Regressão de desempenho | A API fica lenta e nenhum teste falha, porque o resultado continua certo | Limite de tempo em toda resposta dos cenários: 500 ms na API local e 3 s na pública (o dobro do pior tempo medido, cerca de 1,4 s) |
 | Versão da API local diferente da pública | Um PR passa e a API real se comporta de outro jeito | Imagem fixada pelo digest; Dependabot avisa quando sai versão nova; a execução diária usa a pública |
 | Dependência nova quebrando o CI ou com vulnerabilidade | CI vermelho sem mudança no projeto | Versões travadas no `uv.lock`; `pip-audit` em todo CI; Dependabot semanal |
 | Documentação desatualizada | Matriz ou README descrevendo algo que não existe | Testes de rastreabilidade e de sincronia das traduções |

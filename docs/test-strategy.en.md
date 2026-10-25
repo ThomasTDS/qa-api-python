@@ -18,11 +18,12 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 - Authorization: both authentication methods for write operations (token in a cookie and Basic auth), and calls with no credentials or with invalid ones.
 - Input validation: missing fields, wrong types, negative values and dates in an invalid format.
 - Response contract: shape and type of every field.
+- Response time: every response within a limit, without generating load.
 - Security, based on the OWASP API Security Top 10: NoSQL injection, security headers, internal details in error responses, mass assignment and token validity.
 
 **Out of scope:**
 
-- Load and performance testing: the public API is shared, and generating load on it would hurt other people.
+- Load and stress testing: the public API is shared, and generating load on it would hurt other people. The project only checks the time of each response, on the requests the scenarios already make.
 - Web interface: restful-booker does not have one.
 - Full penetration testing, brute force and automated scanning: the project's security tests are light, with few requests each, so as not to harm the public API.
 
@@ -36,6 +37,7 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 | Contract | [models/booking.py](../models/booking.py) | Each response validated against a Pydantic model in strict mode | A change in the shape or type of a response fails the test instead of going unnoticed |
 | Smoke | `@smoke` tag | The 5 most critical end-to-end flows | A quick check that the essentials work (`pytest -m smoke`) |
 | Security | [features/security.feature](../features/security.feature), `@seguranca` tag | Injection, headers, errors, mass assignment and session | Security flaws slip past functional tests; the protection scenarios make sure a defense does not disappear in a new version (`pytest -m seguranca`) |
+| Performance | Every request made by the scenarios ([conftest.py](../conftest.py)) | Whether each response arrives within the limit (`RESPONSE_TIME_LIMIT_MS`): 500 ms on the local API and 3 s on the public one | Catches performance regressions without generating any load, since it reuses the requests the scenarios already make |
 | Documentation | [tests/unit/test_traceability.py](../tests/unit/test_traceability.py) and [tests/unit/test_translation_sync.py](../tests/unit/test_translation_sync.py) | Whether the test case matrix matches the scenarios and whether the Portuguese and English versions of the documents have the same structure | Outdated documentation is a defect that no functional test catches |
 
 **Techniques applied:**
@@ -83,6 +85,7 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 | Data changed by third parties on the public API | Different results on every run | Local API on PRs; unique data per test; cleanup at the end of each test |
 | Contract change without notice | The test passes with wrong data | Schema validation in strict mode; daily run against the public API |
 | Intermittent bug hidden by the retry | A real defect passes on the second attempt | The retry only repeats connection and timeout errors, never assertion failures |
+| Performance regression | The API gets slow and no test fails, because the result is still correct | Time limit on every scenario response: 500 ms on the local API and 3 s on the public one (twice the worst time measured, about 1.4 s) |
 | Local API version different from the public one | A PR passes and the real API behaves differently | Image pinned by digest; Dependabot flags new versions; the daily run uses the public API |
 | New dependency breaking CI or carrying a vulnerability | Red CI with no change in the project | Versions locked in `uv.lock`; `pip-audit` on every CI run; weekly Dependabot |
 | Outdated documentation | Matrix or README describing something that does not exist | Traceability and translation sync tests |
