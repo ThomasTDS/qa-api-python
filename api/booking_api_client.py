@@ -23,6 +23,11 @@ class BookingApiClient(BaseApiClient):
         params = {key: value for key, value in params.items() if value is not None}
         return self._request("GET", "/booking", params=params)
 
+    # Parâmetros de busca crus, com qualquer nome, para os testes de segurança
+    # que mandam operadores do banco na URL (ex.: lastname[$ne]).
+    def get_booking_ids_raw(self, params: dict[str, str]) -> requests.Response:
+        return self._request("GET", "/booking", params=params)
+
     def get_booking(self, booking_id: int) -> requests.Response:
         return self._request("GET", f"/booking/{booking_id}")
 
@@ -33,6 +38,11 @@ class BookingApiClient(BaseApiClient):
     # negativos que precisam mandar um payload propositalmente inválido.
     def create_booking_raw(self, payload: dict[str, Any]) -> requests.Response:
         return self._request("POST", "/booking", json=payload)
+
+    # Corpo enviado como texto, sem passar pelo json do requests, para testar
+    # como a API responde a um JSON malformado.
+    def create_booking_from_text(self, body: str) -> requests.Response:
+        return self._request("POST", "/booking", data=body, headers={"Content-Type": "application/json"})
 
     # A API aceita duas formas de autenticação nas operações de escrita: o token
     # no cookie (padrão) ou usuário e senha em Basic auth. Com Basic auth e sem

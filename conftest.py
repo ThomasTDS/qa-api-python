@@ -16,7 +16,7 @@ from api.booking_api_client import BookingApiClient
 from api.health_api_client import HealthApiClient
 from models.booking import Booking
 
-# Steps compartilhados entre features (token, Basic auth, booking criado, 403, 405 e 500).
+# Steps compartilhados entre features (token, Basic auth, booking criado, health check, 403, 405 e 500).
 pytest_plugins = ["steps.common_steps"]
 
 BASE_URL = os.environ.get("BASE_URL", "https://restful-booker.herokuapp.com")

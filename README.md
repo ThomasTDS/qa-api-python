@@ -106,6 +106,14 @@ pytest -m smoke
 
 Roda só os fluxos ponta-a-ponta mais críticos (autenticação, criação, consulta, atualização e remoção — ver [docs/test-cases.md](docs/test-cases.md)). Como cada execução do `pytest` limpa `reports/allure-results`, gerar o relatório depois disso mostra **só esses 5 cenários**.
 
+### Rodar só os testes de segurança
+
+```
+pytest -m seguranca
+```
+
+Roda os 7 cenários de [features/security.feature](features/security.feature), baseados no OWASP API Security Top 10: injeção NoSQL, cabeçalhos de segurança, detalhes internos em erros, atribuição em massa e validade de tokens. São testes leves, com poucas requisições cada, para não prejudicar a API pública. Três deles registram falhas reais da API, e os outros quatro garantem que proteções que funcionam hoje continuem funcionando.
+
 ### Rodar só os testes unitários
 
 ```
@@ -191,7 +199,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Timeout em todas as chamadas HTTP: os dois clients herdam de `BaseApiClient`, que aplica 5 segundos de limite para conectar e 30 para receber a resposta. Sem isso, o `requests` pode esperar indefinidamente, e uma API travada deixaria o CI parado até o limite de execução do GitHub Actions.
 - Pirâmide de testes: além dos cenários de BDD (`steps/`), que são testes de integração reais contra a `restful-booker`, `tests/unit/` cobre `api/` e `models/` de forma isolada, com `requests-mock` simulando as respostas HTTP — sem rede, sem depender da API pública estar no ar.
 - Validação de schema com [Pydantic](https://docs.pydantic.dev/): as respostas da API são validadas em tempo de execução contra os modelos em `models/booking.py` (fonte única de verdade), não só tipadas por anotação — se a API mudar o formato de uma resposta, o teste falha com uma mensagem clara em vez de passar silenciosamente ou quebrar mais adiante. Os modelos usam o modo estrito do Pydantic, que não converte tipos por conta própria: um `totalprice` enviado como texto (`"150"`), um `depositpaid` como `"true"` ou uma data fora do formato `AAAA-MM-DD` reprovam a validação. Campos extras na resposta são ignorados, porque a API é de terceiros e um campo a mais não é defeito.
-- Cobertura de health check, autenticação (token e Basic auth), CRUD completo, filtros por nome e por data, PUT vs. PATCH, e casos de acesso não autorizado (403).
+- Cobertura de health check, autenticação (token e Basic auth), CRUD completo, filtros por nome e por data, PUT vs. PATCH, casos de acesso não autorizado (403) e segurança (injeção NoSQL, cabeçalhos, erros, atribuição em massa e tokens).
 - Relatório [Allure](https://allurereport.org/) a cada execução: os cenários aparecem agrupados por funcionalidade, com os passos `Dado`, `Quando` e `Então`, e um passo que falha traz anexada a última resposta da API (URL, status, headers e corpo). A versão da `master` fica publicada em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/), com o histórico entre execuções, que mostra tendências e testes instáveis. Os testes unitários não entram no Allure: o resultado deles fica no terminal e no log do CI, e a cobertura no Codecov.
 - Cobertura de código (`pytest-cov`) de `api/` e `models/` em cada execução, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - Verificação de saúde antes da integração: uma fixture de sessão chama o `GET /ping` uma vez, antes do primeiro cenário. Com a API fora do ar, cada teste de integração aparece como erro com a mensagem "API indisponível em <url>" e o motivo, em segundos, em vez de dezenas de falhas de conexão que levariam minutos e pareceriam bugs. Os testes unitários rodam normalmente.

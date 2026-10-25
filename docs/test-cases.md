@@ -48,6 +48,13 @@ Legenda:
 | TC-032 | Atualização  | Atualizar parcialmente com Basic auth (PATCH)           | Funcional | Média      | Automatizado | [update_booking.feature:123](../features/update_booking.feature#L123) |
 | TC-033 | Remoção      | Remover booking com Basic auth                          | Funcional | Alta       | Automatizado | [delete_booking.feature:28](../features/delete_booking.feature#L28)   |
 | TC-034 | Atualização  | Tentar atualizar booking com Basic auth inválido        | Negativo  | Alta       | Automatizado | [update_booking.feature:131](../features/update_booking.feature#L131) |
+| TC-035 | Segurança    | Injeção NoSQL no filtro de busca (bug)                  | Negativo  | Alta       | Automatizado | [security.feature:15](../features/security.feature#L15)               |
+| TC-036 | Segurança    | Login recusa operador do banco no lugar da senha        | Negativo  | Crítica    | Automatizado | [security.feature:23](../features/security.feature#L23)               |
+| TC-037 | Segurança    | Cabeçalhos de segurança ausentes e X-Powered-By (bug)   | Negativo  | Baixa      | Automatizado | [security.feature:31](../features/security.feature#L31)               |
+| TC-038 | Segurança    | Script num campo de texto volta como JSON               | Negativo  | Média      | Automatizado | [security.feature:39](../features/security.feature#L39)               |
+| TC-039 | Segurança    | Erro de requisição não expõe detalhes internos          | Negativo  | Média      | Automatizado | [security.feature:48](../features/security.feature#L48)               |
+| TC-040 | Segurança    | Bookingid enviado no corpo é ignorado                   | Negativo  | Média      | Automatizado | [security.feature:55](../features/security.feature#L55)               |
+| TC-041 | Segurança    | Token antigo continua válido após novo login (bug)      | Negativo  | Baixa      | Automatizado | [security.feature:63](../features/security.feature#L63)               |
 
 `BookingApiClient.get_booking_ids` também aceita filtro por `checkin`/`checkout`, mas o TC-006 cobre só `firstname`/`lastname`: o filtro por data na API pública de demonstração é conhecido por ser instável, e testá-lo arriscaria um teste flaky em vez de validar um comportamento real.
 
