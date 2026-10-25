@@ -15,7 +15,7 @@ O objetivo é praticar testes de API "de verdade": autenticação, CRUD completo
 
 O que é testado, como e por quê (escopo, abordagem por nível, ambientes, riscos e critérios de saída) está na [estratégia de testes](docs/test-strategy.md).
 
-![Relatório de execução dos testes](docs/assets/report-example.png)
+![Relatório Allure de execução dos testes](docs/assets/report-example.png)
 
 *Exemplo do relatório de execução (captura de tela). O relatório ao vivo e sempre atualizado fica em [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/).*
 

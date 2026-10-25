@@ -17,7 +17,7 @@ What is tested, how and why (scope, approach by level, environments, risks and e
 
 The Gherkin scenarios, the test case matrix and the commit history are written in Portuguese, the project's main language.
 
-![Test run report](docs/assets/report-example.png)
+![Allure test run report](docs/assets/report-example.png)
 
 *Example of a test run report (screenshot). The live, always up-to-date report is at [thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/).*
 
