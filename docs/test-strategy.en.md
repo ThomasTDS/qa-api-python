@@ -65,7 +65,7 @@ The tests run on Python 3.12 and 3.13, with dependencies locked in [uv.lock](../
 - Each scenario creates its own data from a default booking ([steps/booking_data.py](../steps/booking_data.py)) and changes only the field relevant to the case.
 - The last name gets a random suffix, so a search by name finds only the test's own booking.
 - At the end of each test, the `context` fixture ([conftest.py](../conftest.py)) deletes the booking it created. If the deletion fails, a warning shows the id left behind.
-- No scenario depends on data created by another, so execution order does not matter.
+- No scenario depends on data created by another, so execution order does not matter. The daily run proves it: against the public API, the scenarios run in 4 parallel processes (`pytest-xdist`).
 
 ## 6. Entry and exit criteria
 

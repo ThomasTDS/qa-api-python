@@ -13,6 +13,7 @@ dev = [
     "pytest>=8.3",
     "pytest-bdd>=8.1",
     "pytest-rerunfailures>=15.0",
+    "pytest-xdist>=3.8",
     "allure-pytest-bdd>=2.16",
     "pytest-cov>=6.0",
     "requests-mock>=1.12",

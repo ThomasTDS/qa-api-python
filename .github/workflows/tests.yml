@@ -87,6 +87,12 @@ jobs:
       BASE_URL: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'https://restful-booker.herokuapp.com' || 'http://localhost:3001' }}
       # Limite de tempo de cada resposta: 3 s na API pública, 500 ms na local.
       RESPONSE_TIME_LIMIT_MS: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '3000' || '500' }}
+      # Contra a API pública, os testes rodam em 4 processos (pytest-xdist): a
+      # suíte cai de cerca de 1 min 47 s para 32 s. Quatro, e não um por núcleo,
+      # para limitar as requisições simultâneas numa API que é compartilhada.
+      # Contra a API local, os cenários levam menos de 1 s (o resto do tempo
+      # vem dos testes de propriedade), e o ganho do paralelo seria pequeno.
+      PYTEST_ADDOPTS: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '-n 4' || '' }}
 
     steps:
       - name: Checkout código
