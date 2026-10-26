@@ -81,6 +81,6 @@ pytest_add_cli_args_test_selection = [
     "--ignore=tests/unit/test_traceability.py",
     "--ignore=tests/unit/test_translation_sync.py",
 ]
-pytest_add_cli_args = ["--no-cov", "-p", "no:rerunfailures", "--hypothesis-profile=mutacao"]
+pytest_add_cli_args = ["--no-cov", "--hypothesis-profile=mutacao"]
 also_copy = ["conftest.py", "steps/", "features/"]
 
