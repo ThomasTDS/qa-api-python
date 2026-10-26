@@ -29,6 +29,9 @@ pytest_plugins = ["steps.common_steps"]
 # primeira vez e 2 ms na repetição), e o Hypothesis acusava o teste como instável.
 settings.register_profile("default", deadline=None)
 settings.register_profile("ci", max_examples=1000, deadline=None)
+# No teste de mutação, cada teste roda uma vez por mutante; 25 exemplos bastam
+# para perceber a alteração sem deixar a execução lenta demais.
+settings.register_profile("mutacao", max_examples=25, deadline=None)
 
 BASE_URL = os.environ.get("BASE_URL", "https://restful-booker.herokuapp.com")
 # O padrão são as credenciais públicas da documentação da restful-booker, para

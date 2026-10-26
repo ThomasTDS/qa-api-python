@@ -23,6 +23,11 @@ dev = [
     "types-requests>=2.32",
     "pre-commit>=4.0",
 ]
+# Teste de mutação. Fica separado do dev porque o mutmut só roda em sistemas
+# com fork (Linux, macOS ou WSL): ele roda no CI, no workflow mutation.yml.
+mutation = [
+    "mutmut>=3.8",
+]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -38,6 +43,10 @@ addopts = "--strict-markers --reruns 1 --alluredir=reports/allure-results --clea
 # instabilidade da API pública. Falha de asserção ou de schema nunca é
 # repetida, para que um bug intermitente não passe na segunda tentativa.
 only_rerun = ["^(ConnectionError|ConnectTimeout|ReadTimeout):"]
+# Nos testes unitários, o requests-mock compara o endereço exatamente, com
+# maiúsculas e minúsculas: um caminho errado como "/BOOKING" precisa falhar
+# (achado pelo teste de mutação).
+requests_mock_case_sensitive = true
 # Os marcadores TC-XXX são registrados no conftest.py, a partir das tags dos
 # arquivos .feature. Com --strict-markers, uma tag com erro de digitação
 # quebra a coleta em vez de virar só um aviso.
@@ -65,3 +74,17 @@ branch = true
 
 [tool.coverage.report]
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+
+# Teste de mutação (mutmut): altera o código de api/ e models/ e confere se os
+# testes unitários percebem cada alteração. Os testes de documentação ficam de
+# fora, porque não exercitam esse código.
+[tool.mutmut]
+source_paths = ["api/", "models/"]
+pytest_add_cli_args_test_selection = [
+    "tests/unit/",
+    "--ignore=tests/unit/test_traceability.py",
+    "--ignore=tests/unit/test_translation_sync.py",
+]
+pytest_add_cli_args = ["--no-cov", "--hypothesis-profile=mutacao"]
+also_copy = ["conftest.py", "steps/", "features/"]
+

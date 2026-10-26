@@ -32,6 +32,7 @@ qa-api-python/
 │   │   └── bug_report.md   # Issue template for real bugs
 │   ├── workflows/
 │   │   ├── tests.yml                  # CI pipeline (push, PR and a scheduled daily run)
+│   │   ├── mutation.yml               # Mutation testing (weekly and manual)
 │   │   └── dependabot-auto-merge.yml  # Auto-merge for Dependabot patch/minor PRs
 │   └── dependabot.yml      # Weekly dependency updates (uv and GitHub Actions)
 ├── docs/
@@ -124,6 +125,18 @@ pytest tests/unit
 
 Isolated tests for `api/` and `models/`, with the HTTP calls mocked through [`requests-mock`](https://requests-mock.readthedocs.io/). They make no network calls, so they run in milliseconds and do not depend on the public API being up. They complement the scenarios in `steps/`, which are real integration tests against `restful-booker`.
 
+### Run mutation testing
+
+[mutmut](https://github.com/boxed/mutmut) changes the code in `api/` and `models/` on purpose (swaps a `>` for `>=`, drops an argument, changes a string) and runs the unit tests against each changed version. A change no test notices is a "surviving mutant": behavior that 100% coverage does not guarantee is tested. It runs in CI ([.github/workflows/mutation.yml](.github/workflows/mutation.yml)) every Monday and through the manual trigger in the Actions tab, with the score and the diff of each survivor in the run summary. Locally, it only runs on Linux, macOS or WSL, because it relies on `fork`:
+
+```
+uv sync --extra dev --extra mutation
+uv run mutmut run
+uv run mutmut results
+```
+
+The current score is 93% (200 of 215 mutants killed). The 15 survivors are equivalent, meaning they do not change behavior: 13 lowercase the HTTP method (`requests` uppercases it) and 2 change the capitalization of the `Content-Type` header. Those lines are already marked with `# pragma: no mutate`, but mutmut 3.8.0 ignores the pragma inside multi-line statements ([fix already accepted upstream](https://github.com/boxed/mutmut/pull/614), not released yet). When the next version comes out, Dependabot brings it in, and the equivalents drop out of the count.
+
 ### Lint and formatting
 
 ```
@@ -201,6 +214,7 @@ Authentication: `POST /auth` with `{ "username": "admin", "password": "password1
 - API Client Objects: `AuthApiClient` and `BookingApiClient` wrap the HTTP calls, the same way Page Objects wrap UI elements.
 - Timeout on every HTTP call: both clients inherit from `BaseApiClient`, which applies a 5-second limit to connect and 30 seconds to receive the response. Without it, `requests` can wait forever, and a hung API would leave CI stuck until the GitHub Actions run time limit.
 - Property-based tests with [Hypothesis](https://hypothesis.readthedocs.io/) ([tests/unit/test_properties.py](tests/unit/test_properties.py)): instead of a few hand-written examples, Hypothesis generates hundreds of inputs and looks for one that breaks a rule, such as "any valid booking survives a JSON round trip" or "the search sends exactly the filters given". It runs 100 examples per test locally and 1000 in CI. The tests found two loopholes in the models' strict mode, now fixed: `totalprice` accepted `NaN` and infinity, which became `null` in the JSON sent to the API, and a date accepted the text `"0"`, read as 1970-01-01.
+- Mutation testing with [mutmut](https://github.com/boxed/mutmut), weekly: it measures whether the unit tests notice changes in the code, not just whether they run through it. The first measurement (84.7%) revealed 18 real gaps despite 100% coverage, such as mocks that did not tell `/booking` from `/BOOKING` and a timeout the auth client could stop passing on. The tests were strengthened, and the score is now 93%, with all remaining survivors equivalent.
 - Test pyramid: besides the BDD scenarios (`steps/`), which are real integration tests against `restful-booker`, `tests/unit/` covers `api/` and `models/` in isolation, with `requests-mock` simulating the HTTP responses: no network, no dependency on the public API being up.
 - Schema validation with [Pydantic](https://docs.pydantic.dev/): API responses are validated at runtime against the models in `models/booking.py` (single source of truth), not just typed through annotations. If the API changes the shape of a response, the test fails with a clear message instead of passing silently or breaking further along. The models use Pydantic's strict mode, which does not convert types on its own: a `totalprice` sent as text (`"150"`), a `depositpaid` as `"true"` or a date outside the `YYYY-MM-DD` format fails validation. Extra fields in the response are ignored, because the API belongs to a third party and an extra field is not a defect.
 - Coverage of the health check, authentication (token and Basic auth), full CRUD, filters by name and by date, PUT vs. PATCH, unauthorized access cases (403) and security (NoSQL injection, headers, errors, mass assignment and tokens).

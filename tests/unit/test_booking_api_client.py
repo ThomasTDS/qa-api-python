@@ -37,7 +37,7 @@ def test_get_booking_ids_sends_only_the_filters_that_were_given(requests_mock: M
     client.get_booking_ids(firstname="Jim", checkin="2024-01-01")
 
     assert requests_mock.last_request is not None
-    assert requests_mock.last_request.qs == {"firstname": ["jim"], "checkin": ["2024-01-01"]}
+    assert requests_mock.last_request.qs == {"firstname": ["Jim"], "checkin": ["2024-01-01"]}
 
 
 def test_get_booking_hits_the_booking_by_id_endpoint(requests_mock: Mocker) -> None:
@@ -195,3 +195,25 @@ def test_create_booking_from_text_sends_the_body_as_is_with_a_json_content_type(
     assert requests_mock.last_request is not None
     assert requests_mock.last_request.text == "{nao-e-json"
     assert requests_mock.last_request.headers["Content-Type"] == "application/json"
+
+
+# Um campo opcional vazio não vai no corpo da requisição: sem o exclude_none,
+# o client mandaria "additionalneeds": null à API (achado pelo teste de mutação).
+def test_create_booking_omits_an_empty_optional_field(requests_mock: Mocker) -> None:
+    requests_mock.post(f"{BASE_URL}/booking", json={})
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.create_booking(_booking().model_copy(update={"additionalneeds": None}))
+
+    assert requests_mock.last_request is not None
+    assert "additionalneeds" not in requests_mock.last_request.json()
+
+
+def test_update_booking_omits_an_empty_optional_field(requests_mock: Mocker) -> None:
+    requests_mock.put(f"{BASE_URL}/booking/1", json={})
+    client = BookingApiClient(requests.Session(), BASE_URL)
+
+    client.update_booking(1, _booking().model_copy(update={"additionalneeds": None}), token="tok123")
+
+    assert requests_mock.last_request is not None
+    assert "additionalneeds" not in requests_mock.last_request.json()

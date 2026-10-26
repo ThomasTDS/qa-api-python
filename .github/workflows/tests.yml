@@ -103,14 +103,14 @@ jobs:
       - name: Instalar dependências
         run: uv sync --locked --extra dev
 
-      # O container leva alguns segundos para começar a responder; o /ping
-      # devolve 201 quando a API está pronta.
       - name: Simular falha
         if: inputs.simular_falha
         run: |
           echo "Falha simulada pelo disparo manual, para validar a issue de acompanhamento"
           exit 1
 
+      # O container leva alguns segundos para começar a responder; o /ping
+      # devolve 201 quando a API está pronta.
       - name: Subir a restful-booker local
         if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
         run: |

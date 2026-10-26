@@ -17,6 +17,7 @@ reports/
 node_modules/
 .pytest_cache/
 .hypothesis/
+mutants/
 .coverage
 .coverage.*
 htmlcov/
