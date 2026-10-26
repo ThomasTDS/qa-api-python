@@ -153,9 +153,9 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      # O histórico do relatório publicado no Pages alimenta as tendências e a
-      # detecção de testes instáveis. Na primeira publicação ele ainda não
-      # existe, e o relatório começa um histórico novo.
+      # Relatório para o artifact da execução (o de PR é o mais usado). O que
+      # vai para o Pages é gerado no job deploy-pages, a partir dos mesmos
+      # resultados, para usar o histórico mais recente.
       - name: Gerar relatório Allure
         if: always() && matrix.python-version == '3.12'
         run: |
@@ -172,18 +172,13 @@ jobs:
           path: reports/allure-report
           retention-days: 15
 
-      - name: Preparar página do GitHub Pages
+      - name: Guardar os resultados para o GitHub Pages
         if: matrix.python-version == '3.12' && github.ref == 'refs/heads/master' && github.event_name == 'push'
-        run: |
-          mkdir -p pages
-          cp reports/allure-report/index.html pages/index.html
-          cp reports/history.jsonl pages/history.jsonl
-
-      - name: Empacotar artifact do GitHub Pages
-        if: matrix.python-version == '3.12' && github.ref == 'refs/heads/master' && github.event_name == 'push'
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
-          path: pages
+          name: allure-results
+          path: reports/allure-results
+          retention-days: 1
 
   # Acompanhamento da execução diária (e do disparo manual), que roda contra a
   # API pública: na falha, abre uma issue com o rótulo execucao-diaria, ou
@@ -237,22 +232,59 @@ jobs:
           } > corpo.md
           gh issue create --title "$TITULO" --label "$LABEL" --assignee "$GITHUB_REPOSITORY_OWNER" --body-file corpo.md
 
+  # Gera o relatório do Pages e publica. Dois merges seguidos disparam duas
+  # publicações, e o grupo de concorrência faz a segunda esperar a primeira.
+  # Baixar o histórico, gerar o relatório e publicar ficam todos aqui dentro,
+  # para que a segunda publicação parta do histórico que a primeira acabou de
+  # publicar; se o histórico fosse baixado antes, no job de integração, as duas
+  # baixariam o mesmo e a segunda apagaria a linha da primeira.
   deploy-pages:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: integration
     runs-on: ubuntu-latest
-    # Dois merges seguidos disparam duas publicações; sem isso, a segunda
-    # falha por encontrar a primeira em andamento. Com o grupo, ela espera.
     concurrency:
       group: pages
       cancel-in-progress: false
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Checkout código
+        uses: actions/checkout@v7
+
+      - name: Baixar os resultados do Allure
+        uses: actions/download-artifact@v8
+        with:
+          name: allure-results
+          path: reports/allure-results
+
+      - name: Instalar Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      # Na primeira publicação o histórico ainda não existe, e o relatório
+      # começa um novo.
+      - name: Gerar relatório Allure com o histórico publicado
+        run: |
+          npm ci --no-audit --no-fund
+          curl -sfL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.jsonl" \
+            -o reports/history.jsonl || echo "Sem histórico publicado ainda"
+          npm run report
+          mkdir -p pages
+          cp reports/allure-report/index.html pages/index.html
+          cp reports/history.jsonl pages/history.jsonl
+
+      - name: Empacotar artifact do GitHub Pages
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: pages
+
       - name: Publicar no GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
