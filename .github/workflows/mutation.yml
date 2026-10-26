@@ -1,0 +1,70 @@
+name: Mutation Tests
+
+# Teste de mutação: o mutmut cria centenas de versões alteradas do código de
+# api/ e models/ (troca um > por >=, apaga uma linha, inverte uma condição) e
+# roda os testes unitários contra cada uma. Uma alteração que nenhum teste
+# percebe ("mutante sobrevivente") aponta um comportamento sem teste de
+# verdade, mesmo com 100% de cobertura. Leva minutos, então roda fora dos PRs:
+# toda segunda-feira e pelo disparo manual, na aba Actions.
+on:
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+  push:
+    branches: [ci/teste-de-mutacao]  # TEMPORÁRIO: só para validar antes do merge
+
+permissions:
+  contents: read
+
+jobs:
+  mutmut:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v7
+
+      - name: Instalar uv e Python
+        uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: '3.12'
+          enable-cache: true
+
+      - name: Instalar dependências
+        run: uv sync --locked --extra dev --extra mutation
+
+      - name: Rodar o teste de mutação
+        run: uv run mutmut run
+
+      # Por enquanto o resultado só é medido, sem meta: a pontuação e a lista
+      # dos sobreviventes ficam no resumo da execução e como artifact.
+      - name: Resumo do resultado
+        if: always()
+        run: |
+          uv run mutmut export-cicd-stats
+          uv run python - <<'EOF'
+          import json, os, subprocess
+          stats = json.load(open("mutants/mutmut-cicd-stats.json"))
+          # Mesma fórmula do mutmut: mortos (inclusive por tempo esgotado)
+          # sobre os mutantes testados.
+          killed = stats["killed"] + stats["timeout"]
+          total = stats["total"] - stats["skipped"]
+          score = 100 * killed / total if total else 0
+          survivors = subprocess.run(["mutmut", "results"], capture_output=True, text=True).stdout.strip()
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("## Teste de mutação\n\n")
+              summary.write(f"**Pontuação:** {score:.1f}% ({killed} de {total} mutantes mortos)\n\n")
+              summary.write("| Situação | Mutantes |\n| -------- | -------- |\n")
+              for key, value in stats.items():
+                  summary.write(f"| {key} | {value} |\n")
+              summary.write("\n### Sobreviventes\n\n```\n" + (survivors or "nenhum") + "\n```\n")
+          print(f"Pontuação: {score:.1f}% ({killed} de {total})")
+          print(survivors)
+          EOF
+
+      - name: Publicar o resultado
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutmut-results
+          path: mutants/mutmut-cicd-stats.json
+          retention-days: 30
