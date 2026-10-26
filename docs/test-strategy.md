@@ -36,6 +36,7 @@ Verificar o comportamento da API pública [restful-booker](https://restful-booke
 | Integração (BDD) | [features/](../features/) e [steps/](../steps/) | O comportamento real da API, com cenários em Gherkin | Os cenários servem ao mesmo tempo de teste e de especificação legível |
 | Contrato | [models/booking.py](../models/booking.py) | Cada resposta validada contra um modelo Pydantic no modo estrito | Uma mudança de formato ou de tipo na resposta falha o teste, em vez de passar sem ser notada |
 | Propriedades | [tests/unit/test_properties.py](../tests/unit/test_properties.py) | Regras que valem para qualquer entrada: ida e volta pelo JSON, recusa de tipos errados, filtros enviados pela busca | O Hypothesis gera centenas de entradas (1000 por teste no CI) e acha casos que ninguém escreveria à mão, como o `NaN` no preço e o texto `"0"` aceito como data |
+| Mutação | [.github/workflows/mutation.yml](../.github/workflows/mutation.yml), semanal | Se os testes unitários percebem alterações propositais no código de `api/` e `models/` | A cobertura diz que uma linha rodou, não que algum teste falharia se ela estivesse errada; o mutmut mede isso |
 | Smoke | tag `@smoke` | Os 5 fluxos mais críticos, de ponta a ponta | Uma verificação rápida de que o essencial funciona (`pytest -m smoke`) |
 | Segurança | [features/security.feature](../features/security.feature), tag `@seguranca` | Injeção, cabeçalhos, erros, atribuição em massa e sessão | Falhas de segurança passam despercebidas nos testes funcionais; os cenários de proteção garantem que uma defesa não suma numa versão nova (`pytest -m seguranca`) |
 | Desempenho | Todas as requisições dos cenários ([conftest.py](../conftest.py)) | Se cada resposta chega dentro do limite (`RESPONSE_TIME_LIMIT_MS`): 500 ms na API local e 3 s na pública | Pega regressões de desempenho sem gerar carga nenhuma, porque reaproveita as requisições que os cenários já fazem |
@@ -106,6 +107,7 @@ Até agora, 13 defeitos estão documentados: a maioria de validação de entrada
 
 - **Resultado de cada execução:** relatório Allure publicado no [GitHub Pages](https://thomastds.github.io/qa-api-python/) a cada push na `master`, com o histórico entre execuções (tendências e testes instáveis), e guardado como artifact em todo PR. O Allure mostra os cenários BDD; o resultado dos testes unitários fica no log do CI.
 - **Cobertura de código:** de `api/` e `models/`, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
+- **Pontuação de mutação:** 93% (200 de 215 mutantes mortos), medida toda semana. Os 15 sobreviventes são equivalentes (método HTTP e nome de cabeçalho, que não diferenciam maiúsculas de minúsculas).
 - **Casos de teste:** 41 na [matriz](test-cases.md), sendo 15 funcionais e 26 negativos, com 4 de prioridade crítica.
 - **Defeitos encontrados:** 13 issues abertas.
 - **Tempo de execução:** a suíte completa roda em menos de 1 segundo contra a API local e em 25 a 40 segundos contra a pública.

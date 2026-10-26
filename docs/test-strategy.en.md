@@ -36,6 +36,7 @@ Verify the behavior of the public [restful-booker](https://restful-booker.heroku
 | Integration (BDD) | [features/](../features/) and [steps/](../steps/) | The real behavior of the API, with Gherkin scenarios | The scenarios work as tests and as a readable specification at the same time |
 | Contract | [models/booking.py](../models/booking.py) | Each response validated against a Pydantic model in strict mode | A change in the shape or type of a response fails the test instead of going unnoticed |
 | Properties | [tests/unit/test_properties.py](../tests/unit/test_properties.py) | Rules that hold for any input: JSON round trip, rejection of wrong types, filters sent by the search | Hypothesis generates hundreds of inputs (1000 per test in CI) and finds cases nobody would write by hand, such as `NaN` in the price and the text `"0"` accepted as a date |
+| Mutation | [.github/workflows/mutation.yml](../.github/workflows/mutation.yml), weekly | Whether the unit tests notice deliberate changes to the code in `api/` and `models/` | Coverage says a line ran, not that any test would fail if it were wrong; mutmut measures that |
 | Smoke | `@smoke` tag | The 5 most critical end-to-end flows | A quick check that the essentials work (`pytest -m smoke`) |
 | Security | [features/security.feature](../features/security.feature), `@seguranca` tag | Injection, headers, errors, mass assignment and session | Security flaws slip past functional tests; the protection scenarios make sure a defense does not disappear in a new version (`pytest -m seguranca`) |
 | Performance | Every request made by the scenarios ([conftest.py](../conftest.py)) | Whether each response arrives within the limit (`RESPONSE_TIME_LIMIT_MS`): 500 ms on the local API and 3 s on the public one | Catches performance regressions without generating any load, since it reuses the requests the scenarios already make |
@@ -106,6 +107,7 @@ So far, 13 defects are documented: most about input validation or status codes, 
 
 - **Result of each run:** Allure report published on [GitHub Pages](https://thomastds.github.io/qa-api-python/) on every push to `master`, with the history across runs (trends and flaky tests), and kept as an artifact on every PR. Allure shows the BDD scenarios; the unit test results stay in the CI log.
 - **Code coverage:** of `api/` and `models/`, tracked on [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
+- **Mutation score:** 93% (200 of 215 mutants killed), measured every week. The 15 survivors are equivalent (HTTP method and header name, which are case-insensitive).
 - **Test cases:** 41 in the [matrix](test-cases.md), 15 functional and 26 negative, with 4 of critical priority.
 - **Defects found:** 13 open issues.
 - **Run time:** the full suite runs in under 1 second against the local API and in 25 to 40 seconds against the public one.

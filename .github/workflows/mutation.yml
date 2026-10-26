@@ -10,8 +10,6 @@ on:
   schedule:
     - cron: '0 7 * * 1'
   workflow_dispatch:
-  push:
-    branches: [ci/teste-de-mutacao]  # TEMPORÁRIO: só para validar antes do merge
 
 permissions:
   contents: read
