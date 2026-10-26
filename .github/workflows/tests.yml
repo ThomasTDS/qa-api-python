@@ -90,8 +90,8 @@ jobs:
       # Contra a API pública, os testes rodam em 4 processos (pytest-xdist): a
       # suíte cai de cerca de 1 min 47 s para 32 s. Quatro, e não um por núcleo,
       # para limitar as requisições simultâneas numa API que é compartilhada.
-      # Contra a API local a suíte leva menos de 1 s, e subir os processos
-      # custaria mais do que economiza.
+      # Contra a API local, os cenários levam menos de 1 s (o resto do tempo
+      # vem dos testes de propriedade), e o ganho do paralelo seria pequeno.
       PYTEST_ADDOPTS: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '-n 4' || '' }}
 
     steps:

@@ -105,7 +105,7 @@ Contra a API pública, os testes podem rodar em paralelo, em 4 processos (via [p
 pytest -n 4
 ```
 
-O número fixo de 4, e não um processo por núcleo, limita quantas requisições chegam ao mesmo tempo na API pública, que é compartilhada. A execução diária do CI roda assim. Contra a API local não vale a pena, porque a suíte inteira leva menos de 1 segundo.
+O número fixo de 4, e não um processo por núcleo, limita quantas requisições chegam ao mesmo tempo na API pública, que é compartilhada. A execução diária do CI roda assim. Contra a API local o ganho é pequeno, porque os cenários levam menos de 1 segundo; a maior parte do tempo vem dos testes de propriedade.
 
 ### Rodar apenas a smoke suite
 

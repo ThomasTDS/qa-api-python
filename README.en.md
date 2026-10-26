@@ -107,7 +107,7 @@ Against the public API, the tests can run in parallel, in 4 processes (through [
 pytest -n 4
 ```
 
-The fixed number of 4, instead of one process per core, limits how many requests reach the shared public API at the same time. The daily CI run works this way. Against the local API it is not worth it, because the whole suite takes under 1 second.
+The fixed number of 4, instead of one process per core, limits how many requests reach the shared public API at the same time. The daily CI run works this way. Against the local API the gain is small, because the scenarios take under 1 second; most of the time goes to the property-based tests.
 
 ### Run only the smoke suite
 
