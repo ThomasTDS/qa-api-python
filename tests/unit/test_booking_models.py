@@ -110,3 +110,12 @@ def test_create_booking_response_nests_the_booking_model() -> None:
 def test_auth_response_requires_a_token() -> None:
     with pytest.raises(ValidationError):
         AuthResponse.model_validate_json("{}")
+
+
+# A mensagem do erro precisa dizer qual formato é o esperado, para quem lê a
+# falha de validação (achado pelo teste de mutação).
+def test_a_date_in_the_wrong_format_explains_the_expected_format() -> None:
+    payload = {"checkin": "01/01/2026", "checkout": "2026-01-05"}
+
+    with pytest.raises(ValidationError, match="a data precisa estar no formato AAAA-MM-DD"):
+        BookingDates.model_validate_json(json.dumps(payload))

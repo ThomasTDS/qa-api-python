@@ -43,6 +43,10 @@ addopts = "--strict-markers --reruns 1 --alluredir=reports/allure-results --clea
 # instabilidade da API pública. Falha de asserção ou de schema nunca é
 # repetida, para que um bug intermitente não passe na segunda tentativa.
 only_rerun = ["^(ConnectionError|ConnectTimeout|ReadTimeout):"]
+# Nos testes unitários, o requests-mock compara o endereço exatamente, com
+# maiúsculas e minúsculas: um caminho errado como "/BOOKING" precisa falhar
+# (achado pelo teste de mutação).
+requests_mock_case_sensitive = true
 # Os marcadores TC-XXX são registrados no conftest.py, a partir das tags dos
 # arquivos .feature. Com --strict-markers, uma tag com erro de digitação
 # quebra a coleta em vez de virar só um aviso.
