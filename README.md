@@ -99,6 +99,14 @@ O relatório mostra os cenários BDD, agrupados por funcionalidade e com os pass
 
 O relatório da execução mais recente em `master` também fica publicado em **[thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/)**, sem precisar rodar nada localmente ou baixar artifact do CI.
 
+Contra a API pública, os testes podem rodar em paralelo, em 4 processos (via [pytest-xdist](https://pytest-xdist.readthedocs.io/)), o que reduz a execução de cerca de 1 min 47 s para 32 s:
+
+```
+pytest -n 4
+```
+
+O número fixo de 4, e não um processo por núcleo, limita quantas requisições chegam ao mesmo tempo na API pública, que é compartilhada. A execução diária do CI roda assim. Contra a API local não vale a pena, porque a suíte inteira leva menos de 1 segundo.
+
 ### Rodar apenas a smoke suite
 
 ```
@@ -220,6 +228,7 @@ Autenticação: `POST /auth` com `{ "username": "admin", "password": "password12
 - Cobertura de código (`pytest-cov`) de `api/` e `models/` em cada execução, acompanhada no [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - Verificação de saúde antes da integração: uma fixture de sessão chama o `GET /ping` uma vez, antes do primeiro cenário. Com a API fora do ar, cada teste de integração aparece como erro com a mensagem "API indisponível em <url>" e o motivo, em segundos, em vez de dezenas de falhas de conexão que levariam minutos e pareceriam bugs. Os testes unitários rodam normalmente.
 - Limpeza automática: a fixture `context` remove o booking criado no cenário (via token próprio de limpeza) ao final de cada teste, evitando acúmulo de dados na API pública. Se a remoção falhar por erro de rede ou de autenticação, o pytest mostra um aviso com o id do booking que ficou para trás, sem mudar o resultado do teste.
+- Execução paralela (`pytest-xdist`): a execução diária contra a API pública roda em 4 processos, ativados pela variável `PYTEST_ADDOPTS` só nesse caso, o que reduz o tempo em cerca de 3 vezes. Rodar em paralelo também comprova que nenhum cenário depende de outro. O paralelo fica fora do `addopts` do projeto, porque o teste de mutação não funciona com ele.
 - Dados de teste únicos: cada booking criado leva um sufixo aleatório no sobrenome (ex: `Ciclano-3f9a1c`). Como a API pública é compartilhada, inclusive pelas execuções paralelas do CI, a busca por nome encontra só o booking do próprio teste.
 - Limite de tempo de resposta: um hook na sessão do `requests` mede cada resposta dos cenários, e o cenário falha se alguma passar do limite, com a rota e o tempo na mensagem (por exemplo, "POST /booking levou 3214 ms"). O limite é de 500 ms contra a API local, onde cada resposta leva poucos milissegundos, e de 3 s contra a pública, o dobro do pior tempo medido nela (cerca de 1,4 s). Não é um teste de carga: aproveita as requisições que os cenários já fazem.
 - Retry automático só para falhas de rede (`pytest-rerunfailures`, com `--reruns 1` e `only_rerun` no `pyproject.toml`): um teste que falha por erro de conexão ou timeout roda uma segunda vez, amortecendo a instabilidade da API pública de demonstração. Falhas de asserção ou de schema nunca são repetidas, para que um bug intermitente não passe na segunda tentativa.

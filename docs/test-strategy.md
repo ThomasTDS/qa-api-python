@@ -65,7 +65,7 @@ Os testes rodam em Python 3.12 e 3.13, com as dependências travadas no [uv.lock
 - Cada cenário cria os próprios dados a partir de um booking padrão ([steps/booking_data.py](../steps/booking_data.py)) e troca só o campo que interessa ao caso.
 - O sobrenome ganha um sufixo aleatório, para que uma busca por nome encontre só o booking do próprio teste.
 - Ao fim de cada teste, a fixture `context` ([conftest.py](../conftest.py)) remove o booking criado. Se a remoção falhar, um aviso mostra o id que ficou para trás.
-- Nenhum cenário depende de dados criados por outro, então a ordem de execução não importa.
+- Nenhum cenário depende de dados criados por outro, então a ordem de execução não importa. A execução diária comprova isso: contra a API pública, os cenários rodam em 4 processos paralelos (`pytest-xdist`).
 
 ## 6. Critérios de entrada e saída
 

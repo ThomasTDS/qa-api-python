@@ -101,6 +101,14 @@ The report shows the BDD scenarios, grouped by feature and with the `Dado`, `Qua
 
 The report for the latest run on `master` is also published at **[thomastds.github.io/qa-api-python](https://thomastds.github.io/qa-api-python/)**, so there is no need to run anything locally or download a CI artifact.
 
+Against the public API, the tests can run in parallel, in 4 processes (through [pytest-xdist](https://pytest-xdist.readthedocs.io/)), which cuts the run from about 1 min 47 s to 32 s:
+
+```
+pytest -n 4
+```
+
+The fixed number of 4, instead of one process per core, limits how many requests reach the shared public API at the same time. The daily CI run works this way. Against the local API it is not worth it, because the whole suite takes under 1 second.
+
 ### Run only the smoke suite
 
 ```
@@ -222,6 +230,7 @@ Authentication: `POST /auth` with `{ "username": "admin", "password": "password1
 - Code coverage (`pytest-cov`) of `api/` and `models/` on every run, tracked on [Codecov](https://codecov.io/gh/ThomasTDS/qa-api-python).
 - Health check before integration: a session fixture calls `GET /ping` once, before the first scenario. With the API down, each integration test shows up as an error with the message "API indisponível em <url>" ("API unavailable at <url>") and the reason, within seconds, instead of dozens of connection failures that would take minutes and look like bugs. The unit tests run normally.
 - Automatic cleanup: the `context` fixture deletes the booking created in the scenario (with its own cleanup token) at the end of each test, so data does not pile up on the public API. If the deletion fails because of a network or authentication error, pytest shows a warning with the id of the booking left behind, without changing the test result.
+- Parallel execution (`pytest-xdist`): the daily run against the public API uses 4 processes, turned on through the `PYTEST_ADDOPTS` variable only in that case, which cuts the time by about 3 times. Running in parallel also proves that no scenario depends on another. Parallelism stays out of the project's `addopts`, because mutation testing does not work with it.
 - Unique test data: each created booking gets a random suffix in its last name (e.g. `Ciclano-3f9a1c`). Since the public API is shared, including by the parallel CI runs, searching by name finds only the test's own booking.
 - Response time limit: a hook on the `requests` session measures every response in the scenarios, and the scenario fails if any of them goes over the limit, with the route and time in the message (for example, "POST /booking levou 3214 ms", Portuguese for "took 3214 ms"). The limit is 500 ms against the local API, where each response takes a few milliseconds, and 3 s against the public one, twice the worst time measured there (about 1.4 s). It is not a load test: it reuses the requests the scenarios already make.
 - Automatic retry for network failures only (`pytest-rerunfailures`, with `--reruns 1` and `only_rerun` in `pyproject.toml`): a test that fails because of a connection error or timeout runs a second time, absorbing the instability of the public demo API. Assertion or schema failures are never retried, so an intermittent bug cannot pass on the second attempt.
