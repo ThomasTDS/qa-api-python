@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue)](https://github.com/ThomasTDS/qa-api-python/actions/workflows/tests.yml)
 [![License](https://img.shields.io/github/license/ThomasTDS/qa-api-python)](LICENSE)
 
-**Português** | [English](README.en.md)
+**Português** | [English](README.en.md) | [Español](README.es.md)
 
 ## Descrição
 
@@ -59,7 +59,8 @@ qa-api-python/
 ├── codecov.yml              # Metas de cobertura verificadas pelo Codecov nos PRs
 ├── LICENSE
 ├── README.md                # Este arquivo
-└── README.en.md             # Versão em inglês deste README
+├── README.en.md             # Versão em inglês deste README
+└── README.es.md             # Versão em espanhol deste README
 ```
 
 ---
