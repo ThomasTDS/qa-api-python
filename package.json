@@ -7,6 +7,6 @@
     "report:open": "allure open reports/allure-report"
   },
   "devDependencies": {
-    "allure": "3.22.1"
+    "allure": "3.33.0"
   }
 }
